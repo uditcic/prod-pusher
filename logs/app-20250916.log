@@ -1,0 +1,88 @@
+{"ts":"2025-09-16T17:53:45.162Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/aditya-test.asp"],"username":"admin.udit.kumar","force":false}
+{"ts":"2025-09-16T17:53:45.358Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\aditya-test.asp"],"missingCount":0}
+{"ts":"2025-09-16T17:53:45.703Z","event":"external.locks.block","count":1,"locks":[{"rel":"test\\udit\\aditya-test.asp","coder":"test","task":"","src":"file"}]}
+{"ts":"2025-09-16T17:54:39.693Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/aditya-test.asp"],"username":"admin.udit.kumar","force":false}
+{"ts":"2025-09-16T17:54:39.699Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\aditya-test.asp"],"missingCount":0}
+{"ts":"2025-09-16T17:54:39.955Z","event":"external.locks.block","count":1,"locks":[{"rel":"test\\udit\\aditya-test.asp","coder":"test","task":"","src":"file"}]}
+{"ts":"2025-09-16T18:04:06.994Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/aditya-test.asp"],"username":"admin.udit.kumar","force":false}
+{"ts":"2025-09-16T18:04:07.198Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\aditya-test.asp"],"missingCount":0}
+{"ts":"2025-09-16T18:04:07.532Z","event":"external.locks.block","count":1,"locks":[{"rel":"test\\udit\\aditya-test.asp","coder":"test","task":"","src":"file"}]}
+{"ts":"2025-09-16T18:04:27.863Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/aditya-test.asp"],"username":"admin.udit.kumar","force":false}
+{"ts":"2025-09-16T18:04:28.072Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\aditya-test.asp"],"missingCount":0}
+{"ts":"2025-09-16T18:04:28.415Z","event":"external.locks.block","count":1,"locks":[{"rel":"test\\udit\\aditya-test.asp","coder":"test","task":"","src":"file"}]}
+{"ts":"2025-09-16T22:23:24.042Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/francais/information/frais/payer.asp"],"username":"admin.udit.kumar","force":false}
+{"ts":"2025-09-16T22:23:24.103Z","event":"external.resolve","base":"W:\\","rels":["francais\\information\\frais\\payer.asp"],"missingCount":0}
+{"ts":"2025-09-16T22:23:24.129Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-16T22:23:25.065Z","event":"external.ftp.done","host":"167.40.65.240","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-16T22:23:25.068Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-16T22:23:25.820Z","event":"external.ftp.done","host":"167.44.3.235","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-16T22:23:25.822Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"},{"host":"167.44.3.235","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"}],"totalOk":2,"totalErr":0}
+{"ts":"2025-09-16T22:25:54.789Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/aditya-test.asp"],"username":"admin.udit.kumar","force":true}
+{"ts":"2025-09-16T22:25:54.863Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\aditya-test.asp"],"missingCount":0}
+{"ts":"2025-09-16T22:25:54.922Z","event":"external.locks.force","count":1}
+{"ts":"2025-09-16T22:25:54.924Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-16T22:25:55.832Z","event":"external.ftp.done","host":"167.40.65.240","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-16T22:25:55.833Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-16T22:25:56.629Z","event":"external.ftp.done","host":"167.44.3.235","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-16T22:25:56.633Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"},{"host":"167.44.3.235","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"}],"totalOk":2,"totalErr":0}
+{"ts":"2025-09-16T22:34:36.827Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/aditya-test.asp","https://internet-stage.cic.gc.ca/test/udit/029.asp"],"username":"admin.udit.k","force":true}
+{"ts":"2025-09-16T22:34:37.053Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\aditya-test.asp","test\\udit\\029.asp"],"missingCount":0}
+{"ts":"2025-09-16T22:34:37.103Z","event":"external.locks.force","count":1}
+{"ts":"2025-09-16T22:34:37.105Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":2,"ftps":false}
+{"ts":"2025-09-16T22:34:52.301Z","event":"external.ftp.error","host":"167.40.65.240","error":"FTP push (external) error: 530 User cannot log in."}
+{"ts":"2025-09-16T22:34:52.303Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":2,"ftps":false}
+{"ts":"2025-09-16T22:35:05.603Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/aditya-test.asp","https://internet-stage.cic.gc.ca/test/udit/029.asp"],"username":"adsads","force":true}
+{"ts":"2025-09-16T22:35:05.711Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\aditya-test.asp","test\\udit\\029.asp"],"missingCount":0}
+{"ts":"2025-09-16T22:35:05.774Z","event":"external.locks.force","count":1}
+{"ts":"2025-09-16T22:35:05.776Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":2,"ftps":false}
+{"ts":"2025-09-16T22:35:07.429Z","event":"external.ftp.error","host":"167.44.3.235","error":"FTP push (external) error: 530 User cannot log in."}
+{"ts":"2025-09-16T22:35:07.431Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":0,"err":2,"error":"FTP push (external) error: 530 User cannot log in."},{"host":"167.44.3.235","port":21,"ok":0,"err":2,"error":"FTP push (external) error: 530 User cannot log in."}],"totalOk":0,"totalErr":4}
+{"ts":"2025-09-16T22:35:20.953Z","event":"external.ftp.error","host":"167.40.65.240","error":"FTP push (external) error: 530 User cannot log in."}
+{"ts":"2025-09-16T22:35:20.955Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":2,"ftps":false}
+{"ts":"2025-09-16T22:35:36.105Z","event":"external.ftp.error","host":"167.44.3.235","error":"FTP push (external) error: 530 User cannot log in."}
+{"ts":"2025-09-16T22:35:36.107Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":0,"err":2,"error":"FTP push (external) error: 530 User cannot log in."},{"host":"167.44.3.235","port":21,"ok":0,"err":2,"error":"FTP push (external) error: 530 User cannot log in."}],"totalOk":0,"totalErr":4}
+{"ts":"2025-09-16T22:35:47.050Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/aditya-test.asp","https://internet-stage.cic.gc.ca/test/udit/029.asp"],"username":"admin.udit.kumar","force":true}
+{"ts":"2025-09-16T22:35:47.210Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\aditya-test.asp","test\\udit\\029.asp"],"missingCount":0}
+{"ts":"2025-09-16T22:35:47.273Z","event":"external.locks.force","count":1}
+{"ts":"2025-09-16T22:35:47.276Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":2,"ftps":false}
+{"ts":"2025-09-16T22:35:48.478Z","event":"external.ftp.done","host":"167.40.65.240","ok":2,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-16T22:35:48.480Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":2,"ftps":false}
+{"ts":"2025-09-16T22:35:49.547Z","event":"external.ftp.done","host":"167.44.3.235","ok":2,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-16T22:35:49.549Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":2,"err":0,"note":"ftpclient returned no per-file results"},{"host":"167.44.3.235","port":21,"ok":2,"err":0,"note":"ftpclient returned no per-file results"}],"totalOk":4,"totalErr":0}
+{"ts":"2025-09-16T22:37:10.807Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/029.asp"],"username":"admin.udit.ku","force":false}
+{"ts":"2025-09-16T22:37:10.810Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\029.asp"],"missingCount":0}
+{"ts":"2025-09-16T22:37:10.836Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-16T22:37:26.007Z","event":"external.ftp.error","host":"167.40.65.240","error":"FTP push (external) error: 530 User cannot log in."}
+{"ts":"2025-09-16T22:37:26.009Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-16T22:37:41.150Z","event":"external.ftp.error","host":"167.44.3.235","error":"FTP push (external) error: 530 User cannot log in."}
+{"ts":"2025-09-16T22:37:41.152Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":0,"err":1,"error":"FTP push (external) error: 530 User cannot log in."},{"host":"167.44.3.235","port":21,"ok":0,"err":1,"error":"FTP push (external) error: 530 User cannot log in."}],"totalOk":0,"totalErr":2}
+{"ts":"2025-09-16T22:43:18.784Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/029.asp"],"username":"admin.udit.kumar","force":false}
+{"ts":"2025-09-16T22:43:18.820Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\029.asp"],"missingCount":0}
+{"ts":"2025-09-16T22:43:18.850Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-16T22:43:19.053Z","event":"external.ftp.error","host":"167.40.65.240","error":"FTP push (external) error: 530 User cannot log in."}
+{"ts":"2025-09-16T22:43:19.055Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-16T22:43:19.211Z","event":"external.ftp.error","host":"167.44.3.235","error":"FTP push (external) error: 530 User cannot log in."}
+{"ts":"2025-09-16T22:43:19.213Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":0,"err":1,"error":"FTP push (external) error: 530 User cannot log in."},{"host":"167.44.3.235","port":21,"ok":0,"err":1,"error":"FTP push (external) error: 530 User cannot log in."}],"totalOk":0,"totalErr":2}
+{"ts":"2025-09-16T22:43:36.496Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/029.asp"],"username":"admin.udit.kumar","force":false}
+{"ts":"2025-09-16T22:43:36.564Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\029.asp"],"missingCount":0}
+{"ts":"2025-09-16T22:43:36.591Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-16T22:43:37.404Z","event":"external.ftp.done","host":"167.40.65.240","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-16T22:43:37.405Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-16T22:43:38.072Z","event":"external.ftp.done","host":"167.44.3.235","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-16T22:43:38.074Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"},{"host":"167.44.3.235","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"}],"totalOk":2,"totalErr":0}
+{"ts":"2025-09-16T22:44:13.906Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/aditya-test.asp","https://internet-stage.cic.gc.ca/test/udit/029.asp"],"username":"admin.udit.k","force":true}
+{"ts":"2025-09-16T22:44:14.013Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\aditya-test.asp","test\\udit\\029.asp"],"missingCount":0}
+{"ts":"2025-09-16T22:44:14.084Z","event":"external.locks.force","count":1}
+{"ts":"2025-09-16T22:44:14.086Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":2,"ftps":false}
+{"ts":"2025-09-16T22:44:29.236Z","event":"external.ftp.error","host":"167.40.65.240","error":"FTP push (external) error: 530 User cannot log in."}
+{"ts":"2025-09-16T22:44:29.238Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":2,"ftps":false}
+{"ts":"2025-09-16T22:44:44.408Z","event":"external.ftp.error","host":"167.44.3.235","error":"FTP push (external) error: 530 User cannot log in."}
+{"ts":"2025-09-16T22:44:44.410Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":0,"err":2,"error":"FTP push (external) error: 530 User cannot log in."},{"host":"167.44.3.235","port":21,"ok":0,"err":2,"error":"FTP push (external) error: 530 User cannot log in."}],"totalOk":0,"totalErr":4}
+{"ts":"2025-09-16T22:45:11.862Z","event":"external.start","urls":["https://internet-stage.cic.gc.ca/test/udit/aditya-test.asp","https://internet-stage.cic.gc.ca/test/udit/029.asp"],"username":"admin.udit.kumar","force":true}
+{"ts":"2025-09-16T22:45:11.994Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\aditya-test.asp","test\\udit\\029.asp"],"missingCount":0}
+{"ts":"2025-09-16T22:45:12.046Z","event":"external.locks.force","count":1}
+{"ts":"2025-09-16T22:45:12.048Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":2,"ftps":false}
+{"ts":"2025-09-16T22:45:13.461Z","event":"external.ftp.done","host":"167.40.65.240","ok":2,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-16T22:45:13.463Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":2,"ftps":false}
+{"ts":"2025-09-16T22:45:14.576Z","event":"external.ftp.done","host":"167.44.3.235","ok":2,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-16T22:45:14.578Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":2,"err":0,"note":"ftpclient returned no per-file results"},{"host":"167.44.3.235","port":21,"ok":2,"err":0,"note":"ftpclient returned no per-file results"}],"totalOk":4,"totalErr":0}

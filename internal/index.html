@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Internal Server Go Live</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Internal Server Go Live</h1>
+      
+      <fieldset style="border:0;padding:0;margin:.5rem 0">
+  <label><input type="checkbox" id="useDefault" checked> Use team default credentials</label>
+</fieldset>
+
+<label>Username
+  <input id="username" name="username" autocomplete="username">
+</label>
+
+<label>Password
+  <input id="password" name="password" type="password" autocomplete="current-password">
+</label>
+
+    <p>Paste your staging URLs and publish pages to the live server.</p>
+
+    <div class="input-section">
+      <label for="stagingUrls">Staging URLs (one per line):</label>
+      <textarea id="stagingUrls" rows="8"
+        placeholder="https://cicintranet-stage.ci.gc.ca/connexion/index-eng.aspx"></textarea>
+
+      <div class="upload-buttons">
+        <button id="goLiveBtn">Publish to Live</button>
+      </div>
+    </div>
+
+    <div class="output-section" id="statusSection" style="display:none;">
+      <h2>Publish Status</h2>
+      <p id="statusMessage"></p>
+    </div>
+
+    <div class="input-section" id="convertSection" style="display:none;">
+      <label for="convertedUrls">Converted Live URLs (preview):</label>
+      <textarea id="convertedUrls" rows="8" readonly></textarea>
+      <div class="upload-buttons">
+        <button id="convertBtn">Convert to Live URLs</button>
+      </div>
+    </div>
+
+    <div class="upload-buttons" style="margin-top:20px;">
+      <button onclick="window.location.href='../index.html'">
+        ⬅️ Back to Control Panel
+      </button>
+    </div>
+
+   <div data-include="/includes/footer.html"></div>
+</div>
+
+
+<!-- Include loader -->
+<script src="/assets/includes.js"></script>
+
+ 
+ <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form        = document.getElementById('internalPublishForm') || null;
+  const urlsEl      = document.getElementById('urls') || document.getElementById('stagingUrls');
+  const useDefault  = document.getElementById('useDefault') || null;
+  const uEl         = document.getElementById('username') || null;
+  const pEl         = document.getElementById('password') || null;
+  const clickBtn    = document.getElementById('goLiveBtnInt') || document.getElementById('goLiveBtn');
+
+  const statusEl    = document.getElementById('statusMessage') || document.getElementById('statusMessageInt');
+  const statusBox   = document.getElementById('statusSection')  || document.getElementById('statusSectionInt');
+
+  const convertBtn  = document.getElementById('convertBtn');
+  const convertedEl = document.getElementById('convertedUrls');
+
+  const lines = () => ((urlsEl && urlsEl.value) || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+
+  // disable inputs if "Use defaults"
+  if (useDefault && uEl && pEl) {
+    const sync = () => {
+      const on = !!useDefault.checked;
+      uEl.disabled = pEl.disabled = on;
+      if (uEl.parentElement) uEl.parentElement.style.opacity = on ? .6 : 1;
+      if (pEl.parentElement) pEl.parentElement.style.opacity = on ? .6 : 1;
+    };
+    useDefault.addEventListener('change', sync); sync();
+  }
+
+  function buildPayload(force) {
+    const urls = lines();
+    if (!urls.length) return { error: 'Paste at least one URL.' };
+
+    if (useDefault && useDefault.checked) {
+      return { payload: { urls, username: '', password: '__USE_DEFAULT__', force } };
+    }
+    let username = uEl ? uEl.value.trim() : '';
+    let password = pEl ? pEl.value : '';
+    if (!uEl || !pEl) {
+      username = prompt('Enter your FTP username:')?.trim() || '';
+      if (!username) return { error: 'Username is required.' };
+      const pw = prompt('Enter your FTP password:');
+      if (pw == null || pw === '') return { error: 'Password is required.' };
+      password = pw;
+    }
+    if (!username) return { error: 'Username is required.' };
+    if (!password) return { error: 'Password is required.' };
+    return { payload: { urls, username, password, force } };
+  }
+
+  function summarizeResult(res, data) {
+    if (!res.ok) return data?.error || `HTTP ${res.status}`;
+    const host = data?.results; // internal returns single host summary
+    if (host && (host.err > 0 || host.error)) return host.error || 'Upload reported errors';
+    return null;
+  }
+
+  async function publishInternal(force = false) {
+    const { payload, error } = buildPayload(force);
+    if (error) { alert(error); return; }
+
+    statusBox && (statusBox.style.display = 'block');
+    statusEl  && (statusEl.textContent = force ? 'Publishing (forced)…' : 'Publishing…');
+
+    let res, data = {};
+    try {
+      res = await fetch('/api/go-live/internal', {
+        method:'POST', headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+      try { data = await res.json(); } catch {}
+    } catch (err) {
+      statusEl && (statusEl.textContent = 'Request failed: ' + err.message);
+      return;
+    }
+
+    if (res.status === 409 && data?.locks?.length && !force) {
+      const y = window.scrollY;
+      const list = data.locks.map(l => `• ${l.rel} — ${l.coder || 'unknown'}`).join('\n');
+      const ok = confirm(`Locked on staging (Connexion):\n\n${list}\n\nForce publish anyway?`);
+      window.scrollTo({ top: y }); uEl?.focus({ preventScroll: true });
+      if (!ok) { statusEl && (statusEl.textContent = 'Publish cancelled (locked pages).'); return; }
+      return publishInternal(true);
+    }
+
+    const errMsg = summarizeResult(res, data);
+    if (errMsg) { statusEl && (statusEl.textContent = 'Failed: ' + errMsg); return; }
+
+    statusEl && (statusEl.textContent = data?.message || 'Done.');
+    const convertSection = document.getElementById('convertSection');
+    if (convertSection) convertSection.style.display = 'block';
+  }
+
+  async function preflightThenPublish(btn) {
+    const urls = lines();
+    const payloadCheck = buildPayload(false);
+    if (payloadCheck.error) { alert(payloadCheck.error); return; }
+
+    btn && (btn.disabled = true);
+
+    // Preflight locks without opening status box (prevents layout shift)
+    try {
+      const ck = await fetch('/api/check/locks-internal', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ urls })
+      }).then(r => r.json());
+
+      if (ck.locked?.length) {
+        const y = window.scrollY;
+        const list = ck.locked.map(l => `• ${l.rel} — ${l.coder || 'unknown'}`).join('\n');
+        const ok = confirm(`Locked on staging (Connexion):\n\n${list}\n\nForce publish anyway?`);
+        window.scrollTo({ top: y }); uEl?.focus({ preventScroll: true });
+        if (!ok) {
+          statusBox && (statusBox.style.display = 'block');
+          statusEl  && (statusEl.textContent = 'Publish cancelled (locked pages).');
+          btn && (btn.disabled = false);
+          return;
+        }
+        await publishInternal(true);
+        btn && (btn.disabled = false);
+        return;
+      }
+    } catch { /* ignore preflight failure */ }
+
+    await publishInternal(false);
+    btn && (btn.disabled = false);
+  }
+
+  if (form) {
+    form.addEventListener('submit', (e) => { e.preventDefault(); preflightThenPublish(null); });
+  } else if (clickBtn) {
+    clickBtn.addEventListener('click', () => preflightThenPublish(clickBtn));
+  }
+
+  if (convertBtn && convertedEl) {
+    convertBtn.addEventListener('click', () => {
+      const src = lines();
+      const converted = src.map(url =>
+        url.replace(/^https?:\/\/cicintranet-stage\.ci\.gc\.ca\/?/i, 'https://cicintranet.ci.gc.ca/')
+      );
+      convertedEl.value = converted.join('\n');
+    });
+  }
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Safety: if a previous dialog left the body "fixed", restore it
+  const cs = getComputedStyle(document.body);
+  if (cs.position === 'fixed') {
+    const t = parseInt(document.body.style.top || '0', 10) || 0;
+    document.body.style.position = '';
+    document.body.style.top = '';
+    if (t) window.scrollTo({ top: -t });
+  }
+});
+</script>
+
+
+</body>
+   
+</html>

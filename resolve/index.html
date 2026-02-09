@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Resolve (Preview local paths)</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Resolve (Preview local paths)</h1>
+    <nav>
+      <a href="/">Home</a> · <a href="/external/">External</a> · <a href="/promote/">Promote</a> · <a href="/check/">Check</a>
+    </nav>
+
+    <div class="card">
+      <p>Paste URLs or relative paths (one per line) to see the exact computed W/Z paths and whether they exist.</p>
+      <form id="resolveForm">
+        <textarea id="list" rows="8" placeholder="/english/foo/bar.aspx&#10;https://stage.../english/foo/baz.html"></textarea>
+        <div class="actions"><button type="submit">Resolve</button></div>
+      </form>
+    </div>
+
+    <section id="out" class="card"></section>
+  </main>
+  <script src="/resolve/resolve.js"></script>
+</body>
+</html>

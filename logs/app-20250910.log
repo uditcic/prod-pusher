@@ -1,0 +1,14 @@
+{"ts":"2025-09-10T12:16:12.081Z","event":"external.start","urls":["https://ircc.canada.ca/test/udit/029.asp"],"username":"admin.udit.kumar"}
+{"ts":"2025-09-10T12:16:12.259Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\029.asp"],"missingCount":0}
+{"ts":"2025-09-10T12:16:12.260Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-10T12:16:13.430Z","event":"external.ftp.done","host":"167.40.65.240","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-10T12:16:13.431Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-10T12:16:14.115Z","event":"external.ftp.done","host":"167.44.3.235","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-10T12:16:14.116Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"},{"host":"167.44.3.235","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"}],"totalOk":2,"totalErr":0}
+{"ts":"2025-09-10T13:01:47.071Z","event":"external.start","urls":["http://internet-stage.cic.gc.ca/test/udit/1465.asp"],"username":"admin.udit.kumar"}
+{"ts":"2025-09-10T13:01:47.227Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\1465.asp"],"missingCount":0}
+{"ts":"2025-09-10T13:01:47.228Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-10T13:01:48.435Z","event":"external.ftp.done","host":"167.40.65.240","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-10T13:01:48.435Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-10T13:01:49.383Z","event":"external.ftp.done","host":"167.44.3.235","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-10T13:01:49.384Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"},{"host":"167.44.3.235","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"}],"totalOk":2,"totalErr":0}

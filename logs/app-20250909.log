@@ -1,0 +1,21 @@
+{"ts":"2025-09-09T17:40:02.088Z","event":"external.start","urls":["http://internet-stage.cic.gc.ca/test/udit/029.asp"],"username":"admin.udit.kumar"}
+{"ts":"2025-09-09T17:40:02.271Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\029.asp"],"missingCount":0}
+{"ts":"2025-09-09T17:40:02.272Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-09T17:40:03.568Z","event":"external.ftp.done","host":"167.40.65.240","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-09T17:40:03.569Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-09T17:40:04.624Z","event":"external.ftp.done","host":"167.44.3.235","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-09T17:40:04.625Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"},{"host":"167.44.3.235","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"}],"totalOk":2,"totalErr":0}
+{"ts":"2025-09-09T17:43:59.802Z","event":"external.start","urls":["http://internet-stage.cic.gc.ca/test/udit/1465.asp"],"username":"admin.udit.kumar"}
+{"ts":"2025-09-09T17:43:59.985Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\1465.asp"],"missingCount":0}
+{"ts":"2025-09-09T17:43:59.987Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-09T17:44:01.174Z","event":"external.ftp.done","host":"167.40.65.240","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-09T17:44:01.174Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":1,"ftps":false}
+{"ts":"2025-09-09T17:44:01.983Z","event":"external.ftp.done","host":"167.44.3.235","ok":1,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-09T17:44:01.985Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"},{"host":"167.44.3.235","port":21,"ok":1,"err":0,"note":"ftpclient returned no per-file results"}],"totalOk":2,"totalErr":0}
+{"ts":"2025-09-09T17:48:22.194Z","event":"external.start","urls":["http://internet-stage.cic.gc.ca/test/udit/029.asp","http://internet-stage.cic.gc.ca/test/udit/1465.asp"],"username":"admin.udit.kumar"}
+{"ts":"2025-09-09T17:48:22.516Z","event":"external.resolve","base":"W:\\","rels":["test\\udit\\029.asp","test\\udit\\1465.asp"],"missingCount":0}
+{"ts":"2025-09-09T17:48:22.517Z","event":"external.ftp.connect","host":"167.40.65.240","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":2,"ftps":false}
+{"ts":"2025-09-09T17:48:24.162Z","event":"external.ftp.done","host":"167.40.65.240","ok":2,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-09T17:48:24.163Z","event":"external.ftp.connect","host":"167.44.3.235","port":21,"remoteBase":"/cicnet/www_cicnet_gc_ca/","count":2,"ftps":false}
+{"ts":"2025-09-09T17:48:25.169Z","event":"external.ftp.done","host":"167.44.3.235","ok":2,"err":0,"note":"ftpclient returned no per-file results"}
+{"ts":"2025-09-09T17:48:25.170Z","event":"external.end","hosts":[{"host":"167.40.65.240","port":21,"ok":2,"err":0,"note":"ftpclient returned no per-file results"},{"host":"167.44.3.235","port":21,"ok":2,"err":0,"note":"ftpclient returned no per-file results"}],"totalOk":4,"totalErr":0}
