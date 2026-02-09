@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Promote to Stage (W→Z)</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Promote to Stage (W → Z)</h1>
+    <nav>
+      <a href="/">Home</a> · <a href="/external/">External</a> · <a href="/check/">Check</a> · <a href="/resolve/">Resolve</a>
+    </nav>
+
+    <div class="card">
+      <p>Paste absolute <strong>W:\</strong> file paths (one per line). They will be copied to <strong>Z:\</strong> keeping the same relative paths.</p>
+      <form id="promoteForm">
+        <textarea id="fileList" name="fileList" rows="8" placeholder="W:\english\foo\bar.aspx&#10;W:\francais\baz\index.html"></textarea>
+        <div class="actions"><button type="submit">Promote to Stage</button></div>
+      </form>
+    </div>
+
+    <section id="statusSection" style="display:none" class="card">
+      <h2>Status</h2>
+      <p id="statusMessage"></p>
+      <ul id="statusList"></ul>
+    </section>
+  </main>
+  <script src="/promote/promote.js"></script>
+</body>
+</html>

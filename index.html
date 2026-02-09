@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Prod-Pusher Control Panel</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="container">
+  <h1>🚀 Prod-Pusher Control Panel</h1>
+  <p>Select the environment to upload your files.</p>
+  <div class="upload-buttons">
+    <button onclick="window.location.href='internal/index.html'"> 🛠️ Internal Server Upload </button>
+    <button onclick="window.location.href='external/index.html'"> 🌐 External Server Upload </button>
+       </div>
+       <section class="home-section small" aria-labelledby="features-heading">
+    <h2 id="features-heading">Upcoming Features</h2>
+    <div class="body">
+      <ul class="home-features">
+          <li>Feature to remove whitespace in URLs</li>
+          <li>URL Counter</li>
+        <li>Confirmation pop up before publishing live</li>
+        <li>Option to delete live files?</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="home-section home-contact" aria-labelledby="contact-heading">
+    <h2 id="contact-heading">Questions or bugs?</h2>
+    <div class="body">
+      <p>Contact <strong>Udit Kumar</strong></p>
+      <p><a href="mailto:udit.kumar@cic.gc.ca">udit.kumar@cic.gc.ca</a> or say hi on Slack!</p>
+    </div>
+  </section>
+
+ 
+ <div data-include="/includes/footer.html"></div>
+
+
+
+
+
+
+</div>
+ <script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Safety: if a previous dialog left the body "fixed", restore it
+  const cs = getComputedStyle(document.body);
+  if (cs.position === 'fixed') {
+    const t = parseInt(document.body.style.top || '0', 10) || 0;
+    document.body.style.position = '';
+    document.body.style.top = '';
+    if (t) window.scrollTo({ top: -t });
+  }
+});
+</script>
+   
+
+<script src="/assets/includes.js"></script>
+</body>
+</html>

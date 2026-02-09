@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>External Server Go Live</title>
+<link rel="stylesheet" href="../style.css" />
+</head>
+
+<body>
+<div class="container">
+  <h1>External Server Go Live</h1>
+  <form id="externalPublishForm" action="javascript:void(0);">
+    <label>Username
+      <input id="username" name="username" autocomplete="username" required>
+    </label>
+    <label>Password
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <label>
+      <input type="checkbox" id="rememberPass">
+      Remember password for this session </label>
+  </form>
+  <p>Paste your staging URLs and publish pages to the live server.</p>
+  <div class="input-section">
+    <label for="stagingUrlsExt">Staging URLs (one per line):</label>
+    <textarea id="stagingUrlsExt" rows="8"
+  placeholder="http://internet-stage.cic.gc.ca/english/example/page.aspx"></textarea>
+
+    <div class="upload-buttons">
+      <button id="goLiveBtnExt">Publish to Live</button>
+    </div>
+  </div>
+  <div class="output-section" id="statusSectionExt" style="display:none;">
+    <h2>Publish Status</h2>
+    <p id="statusMessageExt"></p>
+  </div>
+  <div class="input-section" id="convertSectionExt" style="display:none;">
+    <label for="convertedUrlsExt">Converted Live URLs (preview):</label>
+    <textarea id="convertedUrlsExt" rows="8" readonly></textarea>
+    <div class="upload-buttons">
+      <button id="convertBtnExt">Convert to Live URLs</button>
+    </div>
+  </div>
+  <div class="upload-buttons" style="margin-top:20px;">
+    <button onclick="window.location.href='../index.html'"> ⬅️ Back to Control Panel </button>
+  </div>
+<div data-include="/includes/footer.html"></div>
+</div>
+
+
+<!-- Include loader -->
+<script src="/assets/includes.js"></script>
+
+
+ <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const urlsEl      = document.getElementById('stagingUrlsExt');
+  const userEl      = document.getElementById('username');
+  const passEl      = document.getElementById('password');
+  const remember    = document.getElementById('rememberPass');
+  const goBtn       = document.getElementById('goLiveBtnExt');
+  const statusEl    = document.getElementById('statusMessageExt');
+  const statusBox   = document.getElementById('statusSectionExt');
+
+  const convertBtn  = document.getElementById('convertBtnExt');
+  const convertedEl = document.getElementById('convertedUrlsExt');
+  const convertBox  = document.getElementById('convertSectionExt');
+
+  const LIVE_ORIGIN  = 'https://ircc.canada.ca';
+  const STAGE_ORIGIN = 'http://internet-stage.cic.gc.ca';
+
+  const lines = () => (urlsEl.value || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+
+  function relFromAny(s) {
+    let p = s;
+    try { p = new URL(s).pathname || '/'; } catch {}
+    p = p.replace(/^\/?cicnet\/www_cicnet_gc_ca\//i, '/');
+    p = p.replace(/\\/g, '/');
+    if (!p.startsWith('/')) p = '/' + p;
+    if (/\/$/.test(p)) p += 'index.html';
+    return p;
+  }
+
+  const toLive  = s => LIVE_ORIGIN  + relFromAny(s);
+  const toStage = s => STAGE_ORIGIN + relFromAny(s);
+
+  // remember password for this tab
+  const savedP = sessionStorage.getItem('pp.ext.pass');
+  if (savedP) { passEl.value = savedP; if (remember) remember.checked = true; }
+
+  // Helper to summarize host errors (handles success:true + errors case)
+  function summarizeResult(res, data) {
+    // HTTP error -> show error
+    if (!res.ok) return data?.error || `HTTP ${res.status}`;
+    // Look for host-level errors even on 200
+    const hosts = data?.results?.hosts || [];
+    const errs  = hosts.filter(h => (h.err || 0) > 0 || h.error);
+    if (errs.length) {
+      const first = errs[0];
+      return first.error || 'Upload reported errors';
+    }
+    return null; // no errors
+  }
+
+  async function publish(force = false) {
+    const urls     = lines();
+    const username = (userEl.value || '').trim();
+    const password = passEl.value || '';
+
+    statusBox.style.display = 'block';
+    statusEl.textContent = force ? 'Publishing (forced)…' : 'Publishing…';
+
+    let res, data = {};
+    try {
+      res = await fetch('/api/go-live/external', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls, username, password, force })
+      });
+      try { data = await res.json(); } catch {}
+    } catch (err) {
+      statusEl.textContent = 'Request failed: ' + err.message;
+      return;
+    }
+
+    // 409 lock -> prompt -> optional retry with force:true
+    if (res.status === 409 && data?.locks?.length && !force) {
+      const y = window.scrollY; // preserve scroll to avoid layout jump confusion
+      const list = data.locks.map(l => `• ${l.rel} — ${l.coder || 'unknown'}`).join('\n');
+      const ok = confirm(`Locked on staging:\n\n${list}\n\nForce publish anyway?`);
+      window.scrollTo({ top: y }); userEl?.focus({ preventScroll: true });
+      if (!ok) { statusEl.textContent = 'Publish cancelled (locked pages).'; return; }
+      return publish(true);
+    }
+
+    const errMsg = summarizeResult(res, data);
+    if (errMsg) {
+      statusEl.textContent = 'Failed: ' + errMsg;
+      return;
+    }
+
+    statusEl.textContent = data?.message || 'Done.';
+    if (convertBox) convertBox.style.display = 'block';
+  }
+
+  goBtn.addEventListener('click', async () => {
+    const urls     = lines();
+    const username = (userEl.value || '').trim();
+    const password = passEl.value || '';
+    if (!urls.length)           { alert('Please paste at least one URL.'); return; }
+    if (!username || !password) { alert('Username and password are required.'); return; }
+
+    if (remember && remember.checked) sessionStorage.setItem('pp.ext.pass', password);
+    else sessionStorage.removeItem('pp.ext.pass');
+
+    goBtn.disabled = true;
+
+    // Preflight locks WITHOUT opening the status box (avoids layout shift)
+    try {
+      const ck = await fetch('/api/check/locks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls })
+      }).then(r => r.json());
+
+      if (ck.locked?.length) {
+        const y = window.scrollY;
+        const list = ck.locked.map(l => `• ${l.rel} — ${l.coder || 'unknown'}`).join('\n');
+        const ok = confirm(`Locked on staging:\n\n${list}\n\nForce publish anyway?`);
+        window.scrollTo({ top: y }); userEl?.focus({ preventScroll: true });
+        if (!ok) { 
+          statusBox.style.display = 'block';
+          statusEl.textContent = 'Publish cancelled (locked pages).';
+          goBtn.disabled = false;
+          return;
+        }
+        await publish(true);
+        goBtn.disabled = false;
+        return;
+      }
+    } catch {
+      // ignore preflight failure; proceed to publish
+    }
+
+    await publish(false);
+    goBtn.disabled = false;
+  });
+
+  if (convertBtn && convertedEl) {
+    convertBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const out = lines().map(toLive).join('\n');
+      convertedEl.value = out;
+      if (convertBox) convertBox.style.display = 'block';
+    });
+  }
+});
+</script>
+  
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Safety: if a previous dialog left the body "fixed", restore it
+  const cs = getComputedStyle(document.body);
+  if (cs.position === 'fixed') {
+    const t = parseInt(document.body.style.top || '0', 10) || 0;
+    document.body.style.position = '';
+    document.body.style.top = '';
+    if (t) window.scrollTo({ top: -t });
+  }
+});
+</script>
+
+</body>
+
+</html>
