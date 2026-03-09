@@ -6,10 +6,27 @@ const toPosix = p => String(p).replace(/\\/g, "/");
 
 const path = require("path");
 const fs = require("fs");
-const { exec } = require("child_process");
+const { exec, spawn } = require("child_process");
 
 function openBrowser(port) {
-  exec(`cmd /c start "" "http://localhost:${port}/"`, { shell: false });
+  const url = `http://localhost:${port}/`;
+
+  // Try to launch Edge in app mode (standalone window, no tabs/address bar)
+  const edgePaths = [
+    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+  ];
+  const edge = edgePaths.find(p => fs.existsSync(p));
+
+  if (edge) {
+    spawn(edge, [`--app=${url}`, "--no-first-run", "--disable-extensions"], {
+      detached: true,
+      stdio: "ignore",
+    }).unref();
+  } else {
+    // Fallback: open in default browser as a regular tab
+    exec(`cmd /c start "" "${url}"`, { shell: false });
+  }
 }
 
 // Load modules from portable Node bundle (skip when running as a pkg exe)
