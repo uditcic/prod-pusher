@@ -1,5 +1,6 @@
 // server/server.js
 // Prod-Pusher API: External (canada.ca) + Internal (Connexion) + lock checks + logging + diagnose
+process.noDeprecation = true;
 
 const posix = require("path").posix;
 const toPosix = p => String(p).replace(/\\/g, "/");

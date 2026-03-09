@@ -1,13 +1,13 @@
 {
   "name": "prod-pusher",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Portable internal/external file-push tool (Node + basic-ftp)",
   "main": "server/server.js",
   "bin": "server/server.js",
 
   "scripts": {
     "start": "node server/server.js",
-    "build:exe": "pkg . --target node22-win-x64 --output dist/Prod-Pusher.exe"
+    "build:exe": "pkg . --target node22-win-x64 --output dist/Prod-Pusher.exe && node scripts/apply-icon.mjs"
   },
 
   "pkg": {
@@ -28,7 +28,9 @@
     "express": "^4.18.2"
   },
   "devDependencies": {
-    "@yao-pkg/pkg": "^5.13.0"
+    "@yao-pkg/pkg": "^5.13.0",
+    "pe-library": "^2.0.1",
+    "resedit": "^3.0.2"
   },
 
   "author": "Udit Kumar",
