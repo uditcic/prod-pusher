@@ -9,7 +9,7 @@ const fs = require("fs");
 const { exec } = require("child_process");
 
 function openBrowser(port) {
-  exec(`start "" "http://localhost:${port}/"`);
+  exec(`cmd /c start "" "http://localhost:${port}/"`, { shell: false });
 }
 
 // Load modules from portable Node bundle (skip when running as a pkg exe)
