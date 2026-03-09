@@ -3,10 +3,24 @@
   "version": "1.0.0",
   "description": "Portable internal/external file-push tool (Node + basic-ftp)",
   "main": "server/server.js",
+  "bin": "server/server.js",
 
   "scripts": {
     "start": "node server/server.js",
-    "build:exe": "nexe server/server.js -o dist/Prod-Pusher.exe --resources \"internal/**/*;external/**/*;index.html;style.css;assets/**/*\""
+    "build:exe": "pkg . --target node22-win-x64 --output dist/Prod-Pusher.exe"
+  },
+
+  "pkg": {
+    "assets": [
+      "index.html",
+      "style.css",
+      "assets/**/*",
+      "internal/**/*",
+      "external/**/*",
+      "promote/**/*",
+      "resolve/**/*"
+    ],
+    "scripts": "server/**/*.js"
   },
 
   "dependencies": {
@@ -14,7 +28,7 @@
     "express": "^4.18.2"
   },
   "devDependencies": {
-    "nexe": "^5.0.0"
+    "@yao-pkg/pkg": "^5.13.0"
   },
 
   "author": "Udit Kumar",
