@@ -1,7 +1,6 @@
 // server/ftpClient.js
 const path = require("path");
-// point at your portable basic-ftp install
-const ftp = require(path.join(__dirname, "../node-v22/node_modules/basic-ftp"));
+const ftp = require("basic-ftp");
 
 /**
  * Push a list of files via FTP.

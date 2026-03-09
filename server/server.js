@@ -7,9 +7,11 @@ const toPosix = p => String(p).replace(/\\/g, "/");
 const path = require("path");
 const fs = require("fs");
 
-// Load modules from portable Node bundle
-process.env.NODE_PATH = path.join(__dirname, "../node-v22/node_modules");
-require("module").Module._initPaths();
+// Load modules from portable Node bundle (skip when running as a pkg exe)
+if (!process.pkg) {
+  process.env.NODE_PATH = path.join(__dirname, "../node-v22/node_modules");
+  require("module").Module._initPaths();
+}
 
 const express = require("express");
 
@@ -48,7 +50,10 @@ const CFG = {
 // OLD:
 // const LOG_DIR = path.join(__dirname, "..", "logs");
 // NEW:
-const LOG_DIR = process.env.PP_LOG_DIR || path.join(__dirname, "..", "logs");
+const LOG_DIR = process.env.PP_LOG_DIR ||
+  (process.pkg
+    ? path.join(path.dirname(process.execPath), "logs")
+    : path.join(__dirname, "..", "logs"));
 try { fs.mkdirSync(LOG_DIR, { recursive: true }); } catch {}
 const logPath = () =>
   path.join(LOG_DIR, `app-${new Date().toISOString().slice(0,10).replace(/-/g,"")}.log`);
