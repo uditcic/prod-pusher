@@ -1,4 +1,25 @@
 /* style.css */
+#update-banner {
+  background: #854d0e;
+  color: #fef9c3;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#update-banner a { color: #fde047; font-weight: bold; }
+#update-banner button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #fef9c3;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 4px;
+}
 body {
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 	background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);

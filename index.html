@@ -57,6 +57,22 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
    
 
+<script>
+(async () => {
+  try {
+    const r = await fetch('/api/update-check');
+    const d = await r.json();
+    if (!d.updateAvailable) return;
+    const banner = document.createElement('div');
+    banner.id = 'update-banner';
+    banner.innerHTML =
+      `⬆️ Update available: v${d.latestVersion} &nbsp;` +
+      `<a href="${d.releaseUrl}" target="_blank">Download</a>` +
+      `<button onclick="document.getElementById('update-banner').remove()" aria-label="Dismiss">✕</button>`;
+    document.querySelector('.container').prepend(banner);
+  } catch {}
+})();
+</script>
 <script src="/assets/includes.js"></script>
 </body>
 </html>

@@ -6,6 +6,11 @@ const toPosix = p => String(p).replace(/\\/g, "/");
 
 const path = require("path");
 const fs = require("fs");
+const { exec } = require("child_process");
+
+function openBrowser(port) {
+  exec(`start "" "http://localhost:${port}/"`);
+}
 
 // Load modules from portable Node bundle (skip when running as a pkg exe)
 if (!process.pkg) {
@@ -187,6 +192,43 @@ function collectLocks(base, rels) {
   }
   return out;
 }
+
+// ---------- Update check (exe only; cached per session) ----------
+const CURRENT_VERSION = require("../package.json").version;
+let _updateCache = null;
+
+app.get("/api/update-check", async (req, res) => {
+  if (!process.pkg) return res.json({ updateAvailable: false });
+  if (_updateCache) return res.json(_updateCache);
+
+  try {
+    const https = require("https");
+    const data = await new Promise((resolve, reject) => {
+      const options = {
+        hostname: "api.github.com",
+        path: "/repos/uditcic/prod-pusher/releases/latest",
+        headers: { "User-Agent": "prod-pusher-app" },
+      };
+      https.get(options, (r) => {
+        let body = "";
+        r.on("data", (c) => (body += c));
+        r.on("end", () => resolve(JSON.parse(body)));
+      }).on("error", reject);
+    });
+
+    const latestTag = (data.tag_name || "").replace(/^v/, "");
+    const updateAvailable = latestTag && latestTag !== CURRENT_VERSION;
+    _updateCache = {
+      updateAvailable,
+      currentVersion: CURRENT_VERSION,
+      latestVersion: latestTag || CURRENT_VERSION,
+      releaseUrl: data.html_url || "",
+    };
+    res.json(_updateCache);
+  } catch {
+    res.json({ updateAvailable: false });
+  }
+});
 
 // ---------- Health ----------
 app.get("/api/health", (req, res) => {
@@ -469,6 +511,17 @@ app.post("/api/diagnose/external", async (req, res) => {
 });
 
 // ---------- Start ----------
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
+  if (process.pkg) openBrowser(PORT);
+});
+
+server.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.log(`Port ${PORT} already in use — opening browser.`);
+    openBrowser(PORT);
+    process.exit(0);
+  } else {
+    throw err;
+  }
 });
