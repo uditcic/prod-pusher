@@ -10,17 +10,14 @@
   <div class="container">
     <h1>Internal Server Go Live</h1>
       
-      <fieldset style="border:0;padding:0;margin:.5rem 0">
-  <label><input type="checkbox" id="useDefault" checked> Use team default credentials</label>
-</fieldset>
-
-<label>Username
-  <input id="username" name="username" autocomplete="username">
-</label>
-
-<label>Password
-  <input id="password" name="password" type="password" autocomplete="current-password">
-</label>
+    <div class="cred-fields">
+      <label>Username
+        <input id="username" name="username" autocomplete="username" required>
+      </label>
+      <label>Password
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </label>
+    </div>
 
     <p>Paste your staging URLs and publish pages to the live server.</p>
 
@@ -65,7 +62,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form        = document.getElementById('internalPublishForm') || null;
   const urlsEl      = document.getElementById('urls') || document.getElementById('stagingUrls');
-  const useDefault  = document.getElementById('useDefault') || null;
   const uEl         = document.getElementById('username') || null;
   const pEl         = document.getElementById('password') || null;
   const clickBtn    = document.getElementById('goLiveBtnInt') || document.getElementById('goLiveBtn');
@@ -78,33 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const lines = () => ((urlsEl && urlsEl.value) || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
 
-  // disable inputs if "Use defaults"
-  if (useDefault && uEl && pEl) {
-    const sync = () => {
-      const on = !!useDefault.checked;
-      uEl.disabled = pEl.disabled = on;
-      if (uEl.parentElement) uEl.parentElement.style.opacity = on ? .6 : 1;
-      if (pEl.parentElement) pEl.parentElement.style.opacity = on ? .6 : 1;
-    };
-    useDefault.addEventListener('change', sync); sync();
-  }
-
   function buildPayload(force) {
     const urls = lines();
     if (!urls.length) return { error: 'Paste at least one URL.' };
-
-    if (useDefault && useDefault.checked) {
-      return { payload: { urls, username: '', password: '__USE_DEFAULT__', force } };
-    }
-    let username = uEl ? uEl.value.trim() : '';
-    let password = pEl ? pEl.value : '';
-    if (!uEl || !pEl) {
-      username = prompt('Enter your FTP username:')?.trim() || '';
-      if (!username) return { error: 'Username is required.' };
-      const pw = prompt('Enter your FTP password:');
-      if (pw == null || pw === '') return { error: 'Password is required.' };
-      password = pw;
-    }
+    const username = uEl ? uEl.value.trim() : '';
+    const password = pEl ? pEl.value : '';
     if (!username) return { error: 'Username is required.' };
     if (!password) return { error: 'Password is required.' };
     return { payload: { urls, username, password, force } };
