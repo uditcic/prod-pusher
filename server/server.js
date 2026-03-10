@@ -63,8 +63,8 @@ const CFG = {
   // Internal: Connexion live
   CONNEXION_FTP_HOST: process.env.CONNEXION_FTP_HOST || "10.24.221.168",
   CONNEXION_FTP_PORT: Number(process.env.CONNEXION_FTP_PORT || 21),
-  CONNEXION_REMOTE_BASE: process.env.CONNEXION_REMOTE_BASE || "/cicintranet/connexion",
-  CONNEXION_LOCAL_BASE: process.env.CONNEXION_LOCAL_BASE || (process.env.DEV_LOCAL_BASE || "W:\\"),
+  CONNEXION_REMOTE_BASE: process.env.CONNEXION_REMOTE_BASE || "/cicintranet/",
+  CONNEXION_LOCAL_BASE: process.env.CONNEXION_LOCAL_BASE || "X:\\",
   // If Connexion ever needs TLS, add CONNEXION_FTPS=1 and flip below where we call pushFiles
   CONNEXION_FTPS: process.env.CONNEXION_FTPS === "1",
 };
@@ -408,13 +408,8 @@ app.post("/api/go-live/internal", async (req, res) => {
   try {
     const urls = Array.isArray(req.body?.urls) ? req.body.urls : [];
 
-    // Allow preset env defaults; "__USE_DEFAULT__" forces env even if fields provided
-    let username = (req.body?.username || process.env.CONNEXION_FTP_USER || "").trim();
-    let password = req.body?.password ?? process.env.CONNEXION_FTP_PASS;
-    if (req.body?.password === "__USE_DEFAULT__") {
-      username = (process.env.CONNEXION_FTP_USER || "").trim();
-      password = process.env.CONNEXION_FTP_PASS;
-    }
+    const username = (req.body?.username || "").trim();
+    const password = req.body?.password ?? "";
     const force = !!req.body?.force;
 
     slog("internal.start", { urls, username, force });
