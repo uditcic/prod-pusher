@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
       res = await fetch('/api/go-live/internal', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ urls, username:'', password:'__USE_DEFAULT__', force })
+        body: JSON.stringify({ urls, username: document.getElementById('username')?.value?.trim() || '', password: document.getElementById('password')?.value || '', force })
       });
       try { data = await res.json(); } catch {}
     } catch (err) {

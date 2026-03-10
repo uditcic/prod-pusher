@@ -23,10 +23,6 @@ set "CONNEXION_FTP_PORT=21"
 set "CONNEXION_REMOTE_BASE=/cicintranet/"
 set "CONNEXION_LOCAL_BASE=X:\"
 
-REM --- Connexion default credentials (optional) ---
-set "CONNEXION_FTP_USER=e-comm"
-set "CONNEXION_FTP_PASS=pw34"
-
 echo === Prod-Pusher launcher ===
 echo Running from: %APP_HOME%
 echo NODE_BIN=%NODE_BIN%
