@@ -14,14 +14,14 @@ if not exist "%PP_LOG_DIR%" mkdir "%PP_LOG_DIR%" >nul 2>&1
 
 REM === Defaults (edit as needed) ===
 set "PORT=3000"
-set "DEV_LOCAL_BASE=W:\"
+set "DEV_LOCAL_BASE=Z:\"
 set "IRCC_FTP_HOSTS=167.40.65.240,167.44.3.235"
 set "IRCC_FTP_PORT=21"
 set "IRCC_REMOTE_BASE=/cicnet/www_cicnet_gc_ca/"
 set "CONNEXION_FTP_HOST=10.24.221.168"
 set "CONNEXION_FTP_PORT=21"
 set "CONNEXION_REMOTE_BASE=/cicintranet/"
-set "CONNEXION_LOCAL_BASE=X:\"
+set "CONNEXION_LOCAL_BASE=Y:\"
 
 echo === Prod-Pusher launcher ===
 echo Running from: %APP_HOME%
