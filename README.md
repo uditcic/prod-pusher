@@ -40,13 +40,9 @@ Upload staging pages to the live internal intranet server.
 3. Files resolved from local `Y:\` drive
 4. Uploaded to configured internal FTP host
 
-### Promote (W:\ to Z:\)
-
-Copy files from the working drive to the staging drive, preserving relative paths.
-
 ### Resolve (Path Preview)
 
-Debug helper that shows computed `W:\` and `Z:\` paths for given URLs and checks whether the files exist locally.
+Debug helper that shows computed local paths for given URLs and checks whether the files exist locally.
 
 ## API Endpoints
 
@@ -59,7 +55,6 @@ Debug helper that shows computed `W:\` and `Z:\` paths for given URLs and checks
 | POST | `/api/go-live/external` | Publish to external FTP servers |
 | POST | `/api/go-live/internal` | Publish to internal FTP server |
 | POST | `/api/diagnose/external` | Test FTP connectivity |
-| POST | `/api/promote` | Copy files from W:\ to Z:\ |
 | POST | `/api/resolve` | Preview resolved file paths |
 
 ## Configuration
@@ -94,16 +89,12 @@ prod-pusher/
 ├── internal/
 │   ├── index.html          Internal publishing UI
 │   └── internal.js
-├── promote/
-│   ├── index.html          File promotion UI
-│   └── promote.js
 ├── resolve/
 │   ├── index.html          Path resolution UI
 │   └── resolve.js
 ├── server/
 │   ├── server.js           Express app (main)
-│   ├── ftpclient.js        FTP push helper
-│   └── promote.js          File copy helper
+│   └── ftpclient.js        FTP push helper
 ├── assets/
 │   ├── icon.ico            App icon
 │   ├── includes.js         Dynamic footer loader
