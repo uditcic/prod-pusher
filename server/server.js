@@ -215,24 +215,60 @@ function collectLocks(base, rels) {
 const CURRENT_VERSION = require("../package.json").version;
 let _updateCache = null;
 
+/** Fetch JSON from a URL, respecting HTTP(S)_PROXY env vars + timeout. */
+function fetchJSON(url, timeoutMs = 5000) {
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(url);
+    const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY || process.env.https_proxy || process.env.http_proxy;
+
+    let req;
+    if (proxyUrl) {
+      // Tunnel through corporate proxy via HTTP CONNECT
+      const http = require("http");
+      const proxy = new URL(proxyUrl);
+      const connectReq = http.request({
+        host: proxy.hostname,
+        port: proxy.port || 8080,
+        method: "CONNECT",
+        path: `${parsed.hostname}:443`,
+      });
+      connectReq.setTimeout(timeoutMs, () => { connectReq.destroy(); reject(new Error("proxy timeout")); });
+      connectReq.on("error", reject);
+      connectReq.on("connect", (_res, socket) => {
+        const https = require("https");
+        req = https.get({
+          socket, hostname: parsed.hostname, path: parsed.pathname + parsed.search,
+          headers: { "User-Agent": "prod-pusher-app" },
+        }, handleResponse);
+        req.on("error", reject);
+      });
+      connectReq.end();
+    } else {
+      const https = require("https");
+      req = https.get({
+        hostname: parsed.hostname, path: parsed.pathname + parsed.search,
+        headers: { "User-Agent": "prod-pusher-app" },
+      }, handleResponse);
+      req.setTimeout(timeoutMs, () => { req.destroy(); reject(new Error("timeout")); });
+      req.on("error", reject);
+    }
+
+    function handleResponse(r) {
+      let body = "";
+      r.on("data", (c) => (body += c));
+      r.on("end", () => { try { resolve(JSON.parse(body)); } catch (e) { reject(e); } });
+    }
+  });
+}
+
 app.get("/api/update-check", async (req, res) => {
   if (!process.pkg) return res.json({ updateAvailable: false });
   if (_updateCache) return res.json(_updateCache);
 
   try {
-    const https = require("https");
-    const data = await new Promise((resolve, reject) => {
-      const options = {
-        hostname: "api.github.com",
-        path: "/repos/uditcic/prod-pusher/releases/latest",
-        headers: { "User-Agent": "prod-pusher-app" },
-      };
-      https.get(options, (r) => {
-        let body = "";
-        r.on("data", (c) => (body += c));
-        r.on("end", () => resolve(JSON.parse(body)));
-      }).on("error", reject);
-    });
+    const data = await fetchJSON(
+      "https://api.github.com/repos/uditcic/prod-pusher/releases/latest"
+    );
 
     const latestTag = (data.tag_name || "").replace(/^v/, "");
     const updateAvailable = latestTag && latestTag !== CURRENT_VERSION;
