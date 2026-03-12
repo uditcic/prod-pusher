@@ -51,7 +51,7 @@ app.use(express.json({ limit: "2mb" }));
 // ---------- Configuration (env overridable) ----------
 const CFG = {
   // Local base to read files from
-  DEV_LOCAL_BASE: process.env.DEV_LOCAL_BASE || "W:\\",
+  DEV_LOCAL_BASE: process.env.DEV_LOCAL_BASE || "Z:\\",
 
   // External: IRCC canada.ca live (Barrie + Gatineau)
   IRCC_FTP_HOSTS: (process.env.IRCC_FTP_HOSTS || "167.40.65.240,167.44.3.235")
@@ -64,7 +64,7 @@ const CFG = {
   CONNEXION_FTP_HOST: process.env.CONNEXION_FTP_HOST || "10.24.221.168",
   CONNEXION_FTP_PORT: Number(process.env.CONNEXION_FTP_PORT || 21),
   CONNEXION_REMOTE_BASE: process.env.CONNEXION_REMOTE_BASE || "/cicintranet/",
-  CONNEXION_LOCAL_BASE: process.env.CONNEXION_LOCAL_BASE || "X:\\",
+  CONNEXION_LOCAL_BASE: process.env.CONNEXION_LOCAL_BASE || "Y:\\",
   // If Connexion ever needs TLS, add CONNEXION_FTPS=1 and flip below where we call pushFiles
   CONNEXION_FTPS: process.env.CONNEXION_FTPS === "1",
 };
