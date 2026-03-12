@@ -71,12 +71,12 @@ All settings are configurable via environment variables. Defaults are set in `la
 | `PORT` | 3000 | HTTP server port |
 | `DEV_LOCAL_BASE` | `Z:\` | Local source for external uploads |
 | `CONNEXION_LOCAL_BASE` | `Y:\` | Local source for internal uploads |
-| `IRCC_FTP_HOSTS` | 167.40.65.240,167.44.3.235 | External FTP hosts (CSV) |
+| `IRCC_FTP_HOSTS` | *(none)* | External FTP hosts (CSV) |
 | `IRCC_FTP_PORT` | 21 | External FTP port |
-| `IRCC_REMOTE_BASE` | /cicnet/www_cicnet_gc_ca/ | External remote path |
-| `CONNEXION_FTP_HOST` | 10.24.221.168 | Internal FTP host |
+| `IRCC_REMOTE_BASE` | `/` | External remote path |
+| `CONNEXION_FTP_HOST` | *(none)* | Internal FTP host |
 | `CONNEXION_FTP_PORT` | 21 | Internal FTP port |
-| `CONNEXION_REMOTE_BASE` | /cicintranet/ | Internal remote path |
+| `CONNEXION_REMOTE_BASE` | `/` | Internal remote path |
 | `IRCC_FTPS` | 0 | Set to `1` for TLS on external |
 | `CONNEXION_FTPS` | 0 | Set to `1` for TLS on internal |
 | `PP_LOG_DIR` | `%LOCALAPPDATA%\prod-pusher\logs\[PC]-[USER]` | Log directory |
