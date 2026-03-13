@@ -8,6 +8,7 @@ const toPosix = p => String(p).replace(/\\/g, "/");
 const path = require("path");
 const fs = require("fs");
 const { exec, spawn } = require("child_process");
+const { EventEmitter } = require("events");
 
 function openBrowser(port) {
   const url = `http://localhost:${port}/`;
@@ -80,12 +81,17 @@ const LOG_DIR = process.env.PP_LOG_DIR ||
 try { fs.mkdirSync(LOG_DIR, { recursive: true }); } catch {}
 const logPath = () =>
   path.join(LOG_DIR, `app-${new Date().toISOString().slice(0,10).replace(/-/g,"")}.log`);
+const logBus = new EventEmitter();
+logBus.setMaxListeners(50);
+
 function slog(event, detail = {}) {
   const safe = { ...detail };
   if (safe.password) safe.password = "***";
-  const line = JSON.stringify({ ts: new Date().toISOString(), event, ...safe }) + "\n";
+  const entry = { ts: new Date().toISOString(), event, ...safe };
+  const line = JSON.stringify(entry) + "\n";
   try { fs.appendFileSync(logPath(), line); } catch {}
   console.log(line.trim());
+  logBus.emit("log", entry);
 }
 
 // ---------- Helpers ----------
@@ -301,6 +307,33 @@ app.get("/api/health", (req, res) => {
       IRCC_FTPS: CFG.IRCC_FTPS,
       CONNEXION_FTPS: CFG.CONNEXION_FTPS
     },
+  });
+});
+
+// ---------- SSE: real-time log stream ----------
+app.get("/api/logs/stream", (req, res) => {
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no",
+  });
+  res.write(": connected\n\n");
+
+  let id = 0;
+  const onLog = (entry) => {
+    const safe = { ...entry };
+    delete safe.password; // belt-and-suspenders
+    res.write(`id: ${++id}\ndata: ${JSON.stringify(safe)}\n\n`);
+  };
+  logBus.on("log", onLog);
+
+  // Keep-alive ping every 20s
+  const heartbeat = setInterval(() => res.write(": ping\n\n"), 20000);
+
+  req.on("close", () => {
+    logBus.removeListener("log", onLog);
+    clearInterval(heartbeat);
   });
 });
 
