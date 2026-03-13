@@ -294,6 +294,7 @@ app.get("/api/update-check", async (req, res) => {
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
+    version: CURRENT_VERSION,
     time: new Date().toISOString(),
     defaults: {
       DEV_LOCAL_BASE: CFG.DEV_LOCAL_BASE,
