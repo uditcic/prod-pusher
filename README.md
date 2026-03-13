@@ -56,6 +56,7 @@ Debug helper that shows computed local paths for given URLs and checks whether t
 | POST | `/api/go-live/internal` | Publish to internal FTP server |
 | POST | `/api/diagnose/external` | Test FTP connectivity |
 | POST | `/api/resolve` | Preview resolved file paths |
+| GET | `/api/logs/stream` | Real-time log stream (SSE) |
 
 ## Configuration
 
@@ -98,6 +99,7 @@ prod-pusher/
 ├── assets/
 │   ├── icon.ico            App icon
 │   ├── includes.js         Dynamic footer loader
+│   ├── log-drawer.js       Real-time activity log drawer
 │   └── lock-preflight.js   Shared lock-check logic
 ├── includes/
 │   └── footer.html         Shared footer
@@ -127,6 +129,10 @@ Daily log files are written to `PP_LOG_DIR` in JSON-lines format:
 ```
 
 Passwords are masked as `***` in all log entries.
+
+### Activity Log Drawer
+
+The internal and external publishing pages include a bottom drawer that streams log events in real-time via Server-Sent Events (`/api/logs/stream`). The drawer auto-opens when a publish starts and color-codes entries by severity (green for success, red for errors, yellow for lock warnings).
 
 ## License
 
