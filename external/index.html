@@ -52,6 +52,7 @@
 <!-- Include loader -->
 <script src="/assets/includes.js"></script>
 <script src="/assets/log-drawer.js"></script>
+<script src="/assets/quick-wins.js"></script>
 
 
  <script>
@@ -151,6 +152,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = passEl.value || '';
     if (!urls.length)           { alert('Please paste at least one URL.'); return; }
     if (!username || !password) { alert('Username and password are required.'); return; }
+
+    // Confirmation modal
+    if (window.ppConfirmPublish) {
+      const ok = await ppConfirmPublish(urls, 'External Live');
+      if (!ok) return;
+    }
 
     if (remember && remember.checked) sessionStorage.setItem('pp.ext.pass', password);
     else sessionStorage.removeItem('pp.ext.pass');
