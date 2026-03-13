@@ -57,6 +57,7 @@
 <!-- Include loader -->
 <script src="/assets/includes.js"></script>
 <script src="/assets/log-drawer.js"></script>
+<script src="/assets/quick-wins.js"></script>
 
 
  <script>
@@ -132,6 +133,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const urls = lines();
     const payloadCheck = buildPayload(false);
     if (payloadCheck.error) { alert(payloadCheck.error); return; }
+
+    // Confirmation modal
+    if (window.ppConfirmPublish) {
+      const ok = await ppConfirmPublish(urls, 'Internal Live');
+      if (!ok) return;
+    }
 
     btn && (btn.disabled = true);
 
