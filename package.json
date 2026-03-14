@@ -17,6 +17,7 @@
       "assets/**/*",
       "internal/**/*",
       "external/**/*",
+      "history/**/*",
       "promote/**/*",
       "resolve/**/*"
     ],

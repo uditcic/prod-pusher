@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Publish History — Prod-Pusher</title>
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    /* History page overrides */
+    .container { max-width: 900px; text-align: left; }
+
+    /* Filter bar */
+    .hist-filters {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      align-items: flex-end; margin-bottom: 18px;
+    }
+    .hist-filters label { font-size: 13px; color: #94a3b8; margin-bottom: 0; }
+    .hist-filters input, .hist-filters select {
+      padding: 6px 10px; border-radius: 6px; border: 1px solid #334155;
+      background: #1e293b; color: #e2e8f0; font-size: 13px;
+    }
+    .hist-filters button {
+      padding: 6px 14px; border-radius: 6px; border: none;
+      background: #0ea5e9; color: #fff; font-weight: 600;
+      cursor: pointer; font-size: 13px;
+    }
+    .hist-filters button:hover { background: #0369a1; }
+
+    /* Table */
+    .hist-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .hist-table th {
+      text-align: left; padding: 10px 8px; color: #38bdf8;
+      border-bottom: 2px solid #334155; font-weight: 600; white-space: nowrap;
+    }
+    .hist-table td {
+      padding: 9px 8px; border-bottom: 1px solid #1e293b;
+      color: #cbd5e1; vertical-align: top;
+    }
+    .hist-table tr:hover td { background: #1a2332; }
+    .hist-table tr.hist-detail-row td { padding: 0; }
+
+    /* Outcome badges */
+    .hist-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+    }
+    .badge-success  { background: #064e3b; color: #34d399; }
+    .badge-partial  { background: #78350f; color: #fbbf24; }
+    .badge-dryrun   { background: #164e63; color: #22d3ee; }
+    .badge-crash    { background: #7f1d1d; color: #f87171; }
+    .badge-blocked  { background: #44403c; color: #a8a29e; }
+    .badge-missing  { background: #44403c; color: #a8a29e; }
+    .badge-incomplete { background: #1e293b; color: #64748b; }
+
+    /* Env badges */
+    .env-ext { color: #38bdf8; }
+    .env-int { color: #c084fc; }
+
+    /* Expand toggle */
+    .hist-expand {
+      background: none; border: none; color: #64748b;
+      cursor: pointer; font-size: 14px; padding: 0 4px;
+    }
+    .hist-expand:hover { color: #e2e8f0; }
+
+    /* Detail panel */
+    .hist-detail {
+      background: #0f172a; border-radius: 6px;
+      margin: 4px 8px 10px; padding: 12px 14px;
+      font-family: Consolas, "Courier New", monospace; font-size: 12px;
+      max-height: 220px; overflow-y: auto;
+      scrollbar-width: thin; scrollbar-color: #334155 #0f172a;
+    }
+    .hist-detail .evt-row {
+      display: flex; gap: 10px; padding: 2px 0;
+      border-bottom: 1px solid #1a2332;
+    }
+    .evt-ts   { color: #475569; flex-shrink: 0; }
+    .evt-name { color: #e2e8f0; flex-shrink: 0; }
+    .evt-data { color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Pagination */
+    .hist-pager {
+      display: flex; justify-content: center; align-items: center;
+      gap: 12px; margin-top: 16px;
+    }
+    .hist-pager button {
+      padding: 6px 14px; border-radius: 6px; border: none;
+      background: #334155; color: #e2e8f0; cursor: pointer; font-size: 13px;
+    }
+    .hist-pager button:disabled { opacity: .4; cursor: default; }
+    .hist-pager button:not(:disabled):hover { background: #475569; }
+    .hist-pager span { color: #94a3b8; font-size: 13px; }
+
+    /* Empty state */
+    .hist-empty {
+      text-align: center; padding: 40px 0; color: #64748b; font-size: 15px;
+    }
+
+    /* Back button alignment */
+    .hist-back { margin-top: 20px; text-align: center; }
+
+    @media (max-width: 768px) {
+      .hist-filters { flex-direction: column; }
+      .hist-table { font-size: 12px; }
+      .hist-table th, .hist-table td { padding: 6px 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📋 Publish History</h1>
+    <p>Review past publish sessions — successful uploads, dry runs, and errors.</p>
+
+    <!-- Filter bar -->
+    <div class="hist-filters">
+      <label>From
+        <input type="date" id="histFrom" />
+      </label>
+      <label>To
+        <input type="date" id="histTo" />
+      </label>
+      <label>Environment
+        <select id="histEnv">
+          <option value="">All</option>
+          <option value="internal">Internal</option>
+          <option value="external">External</option>
+        </select>
+      </label>
+      <button id="histSearch">Search</button>
+    </div>
+
+    <!-- Results table -->
+    <table class="hist-table" id="histTable">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Date / Time</th>
+          <th>User</th>
+          <th>Env</th>
+          <th>Files</th>
+          <th>Outcome</th>
+          <th>OK / Err</th>
+        </tr>
+      </thead>
+      <tbody id="histBody">
+        <!-- rows injected by history.js -->
+      </tbody>
+    </table>
+
+    <div class="hist-empty" id="histEmpty" style="display:none;">
+      No publish sessions found for the selected range.
+    </div>
+
+    <!-- Pagination -->
+    <div class="hist-pager" id="histPager" style="display:none;">
+      <button id="histPrev" disabled>← Prev</button>
+      <span id="histPageInfo">Page 1</span>
+      <button id="histNext" disabled>Next →</button>
+    </div>
+
+    <div class="hist-back">
+      <div class="upload-buttons">
+        <button onclick="window.location.href='../index.html'">
+          ⬅️ Back to Control Panel
+        </button>
+      </div>
+    </div>
+
+    <div data-include="/includes/footer.html"></div>
+  </div>
+
+  <script src="/assets/includes.js"></script>
+  <script src="/history/history.js"></script>
+</body>
+</html>
