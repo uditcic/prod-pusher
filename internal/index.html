@@ -17,6 +17,10 @@
       <label>Password
         <input id="password" name="password" type="password" autocomplete="current-password" required>
       </label>
+      <label>
+        <input type="checkbox" id="dryRunInt">
+        Dry run (preview only)
+      </label>
     </div>
 
     <p>Paste your staging URLs and publish pages to the live server.</p>
@@ -76,6 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const lines = () => ((urlsEl && urlsEl.value) || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
 
+  const dryRunEl = document.getElementById('dryRunInt');
+
   function buildPayload(force) {
     const urls = lines();
     if (!urls.length) return { error: 'Paste at least one URL.' };
@@ -83,7 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = pEl ? pEl.value : '';
     if (!username) return { error: 'Username is required.' };
     if (!password) return { error: 'Password is required.' };
-    return { payload: { urls, username, password, force } };
+    const dryRun = dryRunEl?.checked || false;
+    return { payload: { urls, username, password, force, dryRun } };
   }
 
   function summarizeResult(res, data) {
@@ -98,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (error) { alert(error); return; }
 
     statusBox && (statusBox.style.display = 'block');
-    statusEl  && (statusEl.textContent = force ? 'Publishing (forced)…' : 'Publishing…');
+    statusEl  && (statusEl.textContent = payload.dryRun ? 'Running dry run…' : (force ? 'Publishing (forced)…' : 'Publishing…'));
 
     let res, data = {};
     try {
@@ -121,6 +128,23 @@ document.addEventListener('DOMContentLoaded', () => {
       return publishInternal(true);
     }
 
+    // Dry run preview
+    if (data.dryRun && statusEl) {
+      const r = data.results || {};
+      let html = '<strong style="color:#22d3ee">DRY RUN — No files were uploaded</strong><br><br>';
+      html += '<strong>' + (r.resolved||[]).length + ' file(s) resolved:</strong><br>';
+      html += '<div style="background:#0f172a;border-radius:6px;padding:8px;margin:6px 0;font-family:Consolas,monospace;font-size:13px;max-height:150px;overflow-y:auto;color:#94a3b8">';
+      (r.resolved||[]).forEach(function(f) { html += f + '<br>'; });
+      html += '</div>';
+      if ((r.locks||[]).length) {
+        html += '<strong style="color:#fbbf24">⚠ ' + r.locks.length + ' lock(s):</strong><br>';
+        r.locks.forEach(function(l) { html += '• ' + l.rel + ' — ' + (l.coder||'unknown') + '<br>'; });
+      }
+      html += '<br><strong>Target:</strong> ' + (r.host || '') + ':' + (r.port || 21);
+      statusEl.innerHTML = html;
+      return;
+    }
+
     const errMsg = summarizeResult(res, data);
     if (errMsg) { statusEl && (statusEl.textContent = 'Failed: ' + errMsg); return; }
 
@@ -134,8 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const payloadCheck = buildPayload(false);
     if (payloadCheck.error) { alert(payloadCheck.error); return; }
 
-    // Confirmation modal
-    if (window.ppConfirmPublish) {
+    // Confirmation modal (skip for dry runs)
+    const dryRun = dryRunEl?.checked || false;
+    if (!dryRun && window.ppConfirmPublish) {
       const ok = await ppConfirmPublish(urls, 'Internal Live');
       if (!ok) return;
     }

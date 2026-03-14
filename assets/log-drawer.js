@@ -86,7 +86,8 @@
 
       // Severity color class
       var sevClass = '';
-      if (/done|end/i.test(entry.event)) sevClass = 'pp-sev-ok';
+      if (/dryrun/i.test(entry.event)) sevClass = 'pp-sev-dry';
+      else if (/done|end/i.test(entry.event)) sevClass = 'pp-sev-ok';
       else if (/error|crash/i.test(entry.event)) sevClass = 'pp-sev-err';
       else if (/lock/i.test(entry.event)) sevClass = 'pp-sev-warn';
 
@@ -193,6 +194,7 @@
       '.pp-sev-ok   { color:#22c55e; }',
       '.pp-sev-err  { color:#ef4444; }',
       '.pp-sev-warn { color:#eab308; }',
+      '.pp-sev-dry  { color:#22d3ee; }',
 
       '.pp-detail { color:#64748b; overflow:hidden; text-overflow:ellipsis;',
       '  white-space:nowrap; min-width:0; }',

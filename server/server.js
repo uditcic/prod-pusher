@@ -378,6 +378,126 @@ app.post("/api/check/locks-internal", (req, res) => {
   res.json({ ok: true, locked, inspectedCount: inspected.length, inspected });
 });
 
+// ---------- Publish History ----------
+function parsePublishSessions(lines) {
+  const sessions = [];
+  let current = null;
+
+  for (const raw of lines) {
+    let entry;
+    try { entry = JSON.parse(raw); } catch { continue; }
+    if (!entry.event) continue;
+
+    if (entry.event.endsWith(".start")) {
+      if (current) sessions.push(current);
+      const env = entry.event.startsWith("external") ? "external" : "internal";
+      current = {
+        id: entry.ts,
+        ts: entry.ts,
+        env,
+        username: entry.username || "",
+        fileCount: (entry.urls || []).length,
+        force: !!entry.force,
+        dryRun: !!entry.dryRun,
+        events: [entry],
+        outcome: "incomplete",
+        totalOk: 0,
+        totalErr: 0,
+      };
+    } else if (current) {
+      current.events.push(entry);
+      if (entry.event.endsWith(".end")) {
+        current.totalOk = entry.totalOk ?? entry.ok ?? 0;
+        current.totalErr = entry.totalErr ?? entry.err ?? 0;
+        current.outcome = current.totalErr > 0 ? "partial" : "success";
+      } else if (entry.event.endsWith(".dryrun")) {
+        current.outcome = "dryrun";
+      } else if (entry.event.endsWith(".missing")) {
+        current.outcome = "missing";
+      } else if (entry.event.endsWith(".locks.block")) {
+        current.outcome = "blocked";
+      } else if (entry.event.endsWith(".crash")) {
+        current.outcome = "crash";
+      }
+    }
+  }
+  if (current) sessions.push(current);
+  return sessions;
+}
+
+app.get("/api/logs/history", (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const envFilter = req.query.env || "";
+    const now = new Date();
+    const fromDate = req.query.from || new Date(now - 30 * 86400000).toISOString().slice(0, 10);
+    const toDate = req.query.to || now.toISOString().slice(0, 10);
+
+    // List log files in range
+    let logFiles = [];
+    try { logFiles = fs.readdirSync(LOG_DIR).filter(f => /^app-\d{8}\.log$/.test(f)).sort().reverse(); } catch {}
+
+    const fromStamp = fromDate.replace(/-/g, "");
+    const toStamp = toDate.replace(/-/g, "");
+    logFiles = logFiles.filter(f => {
+      const d = f.match(/app-(\d{8})\.log/)?.[1];
+      return d && d >= fromStamp && d <= toStamp;
+    });
+
+    // Parse all matching files into sessions
+    let allSessions = [];
+    for (const file of logFiles) {
+      try {
+        const content = fs.readFileSync(path.join(LOG_DIR, file), "utf8");
+        const lines = content.split("\n").filter(Boolean);
+        allSessions = allSessions.concat(parsePublishSessions(lines));
+      } catch {}
+    }
+
+    // Sort newest first
+    allSessions.sort((a, b) => b.ts.localeCompare(a.ts));
+
+    // Filter by env
+    if (envFilter) allSessions = allSessions.filter(s => s.env === envFilter);
+
+    const total = allSessions.length;
+    const start = (page - 1) * limit;
+    const paginated = allSessions.slice(start, start + limit).map(s => ({
+      id: s.id, ts: s.ts, env: s.env, username: s.username,
+      fileCount: s.fileCount, outcome: s.outcome,
+      totalOk: s.totalOk, totalErr: s.totalErr,
+      force: s.force, dryRun: s.dryRun,
+    }));
+
+    res.json({ sessions: paginated, page, limit, total, hasMore: start + limit < total });
+  } catch (e) {
+    res.status(500).json({ error: String(e?.message || e) });
+  }
+});
+
+app.get("/api/logs/history/:sessionId", (req, res) => {
+  try {
+    const sessionId = req.params.sessionId; // ISO timestamp
+    const dateStr = sessionId.slice(0, 10).replace(/-/g, "");
+    const file = path.join(LOG_DIR, `app-${dateStr}.log`);
+
+    let content;
+    try { content = fs.readFileSync(file, "utf8"); } catch {
+      return res.status(404).json({ error: "Log file not found." });
+    }
+
+    const lines = content.split("\n").filter(Boolean);
+    const sessions = parsePublishSessions(lines);
+    const session = sessions.find(s => s.id === sessionId);
+
+    if (!session) return res.status(404).json({ error: "Session not found." });
+    res.json({ session });
+  } catch (e) {
+    res.status(500).json({ error: String(e?.message || e) });
+  }
+});
+
 // ---------- External (canada.ca) ----------
 app.post("/api/go-live/external", async (req, res) => {
   try {
@@ -385,8 +505,9 @@ app.post("/api/go-live/external", async (req, res) => {
     const username = (req.body?.username || process.env.IRCC_FTP_USER || "").trim();
     const password = req.body?.password ?? process.env.IRCC_FTP_PASS;
     const force = !!req.body?.force;
+    const dryRun = !!req.body?.dryRun;
 
-    slog("external.start", { urls, username, force });
+    slog("external.start", { urls, username, force, dryRun });
 
     if (!urls.length || !username || typeof password !== "string") {
       return res.status(400).json({ success: false, error: "Missing parameters (urls/username/password)." });
@@ -404,11 +525,27 @@ app.post("/api/go-live/external", async (req, res) => {
 
     // --- Lock gate (block unless force:true) ---
     const locks = collectLocks(base, rels);
-    if (locks.length && !force) {
+    if (locks.length && !force && !dryRun) {
       slog("external.locks.block", { count: locks.length, locks: locks.map(l => ({ rel: l.rel, coder: l.coder, task: l.task, src: l.source })) });
       return res.status(409).json({ success: false, error: "Locked pages detected. Ask the coder to clear 'coder' or proceed with force:true.", locks });
     }
     if (locks.length && force) slog("external.locks.force", { count: locks.length });
+
+    // --- Dry run: return preview without uploading ---
+    if (dryRun) {
+      slog("external.dryrun", { rels, lockCount: locks.length });
+      return res.json({
+        success: true,
+        dryRun: true,
+        message: `Dry run: ${rels.length} file(s) resolved, ${missing.length} missing, ${locks.length} lock(s).`,
+        results: {
+          resolved: rels,
+          missing: [],
+          locks,
+          hosts: CFG.IRCC_FTP_HOSTS.map(h => ({ host: h, port: CFG.IRCC_FTP_PORT }))
+        }
+      });
+    }
 
     const hostSummaries = [];
     for (const host of CFG.IRCC_FTP_HOSTS) {
@@ -481,8 +618,9 @@ app.post("/api/go-live/internal", async (req, res) => {
     const username = (req.body?.username || "").trim();
     const password = req.body?.password ?? "";
     const force = !!req.body?.force;
+    const dryRun = !!req.body?.dryRun;
 
-    slog("internal.start", { urls, username, force });
+    slog("internal.start", { urls, username, force, dryRun });
 
     if (!urls.length || !username || typeof password !== "string") {
       return res.status(400).json({ success: false, error: "Missing parameters (urls/username/password)." });
@@ -500,7 +638,7 @@ app.post("/api/go-live/internal", async (req, res) => {
 
     // --- Lock gate for Connexion (same behavior as External) ---
     const locks = collectLocks(base, rels);
-    if (locks.length && !force) {
+    if (locks.length && !force && !dryRun) {
       slog("internal.locks.block", { count: locks.length, locks: locks.map(l => ({ rel: l.rel, coder: l.coder, task: l.task, src: l.source })) });
       return res.status(409).json({
         success: false,
@@ -509,6 +647,24 @@ app.post("/api/go-live/internal", async (req, res) => {
       });
     }
     if (locks.length && force) slog("internal.locks.force", { count: locks.length });
+
+    // --- Dry run: return preview without uploading ---
+    if (dryRun) {
+      slog("internal.dryrun", { rels, lockCount: locks.length });
+      return res.json({
+        success: true,
+        dryRun: true,
+        message: `Dry run: ${rels.length} file(s) resolved, ${missing.length} missing, ${locks.length} lock(s).`,
+        results: {
+          resolved: rels,
+          missing: [],
+          locks,
+          host: CFG.CONNEXION_FTP_HOST,
+          port: CFG.CONNEXION_FTP_PORT
+        }
+      });
+    }
+
 await ensureRemoteDirs({
   host: CFG.CONNEXION_FTP_HOST,
   port: CFG.CONNEXION_FTP_PORT,
