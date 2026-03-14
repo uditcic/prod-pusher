@@ -20,6 +20,9 @@
     <label>
       <input type="checkbox" id="rememberPass">
       Remember password for this session </label>
+    <label>
+      <input type="checkbox" id="dryRunExt">
+      Dry run (preview only) </label>
   </form>
   <p>Paste your staging URLs and publish pages to the live server.</p>
   <div class="input-section">
@@ -105,20 +108,23 @@ document.addEventListener('DOMContentLoaded', () => {
     return null; // no errors
   }
 
+  const dryRunEl = document.getElementById('dryRunExt');
+
   async function publish(force = false) {
     const urls     = lines();
     const username = (userEl.value || '').trim();
     const password = passEl.value || '';
+    const dryRun   = dryRunEl?.checked || false;
 
     statusBox.style.display = 'block';
-    statusEl.textContent = force ? 'Publishing (forced)…' : 'Publishing…';
+    statusEl.textContent = dryRun ? 'Running dry run…' : (force ? 'Publishing (forced)…' : 'Publishing…');
 
     let res, data = {};
     try {
       res = await fetch('/api/go-live/external', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ urls, username, password, force })
+        body: JSON.stringify({ urls, username, password, force, dryRun })
       });
       try { data = await res.json(); } catch {}
     } catch (err) {
@@ -134,6 +140,23 @@ document.addEventListener('DOMContentLoaded', () => {
       window.scrollTo({ top: y }); userEl?.focus({ preventScroll: true });
       if (!ok) { statusEl.textContent = 'Publish cancelled (locked pages).'; return; }
       return publish(true);
+    }
+
+    // Dry run preview
+    if (data.dryRun) {
+      const r = data.results || {};
+      let html = '<strong style="color:#22d3ee">DRY RUN — No files were uploaded</strong><br><br>';
+      html += '<strong>' + (r.resolved||[]).length + ' file(s) resolved:</strong><br>';
+      html += '<div style="background:#0f172a;border-radius:6px;padding:8px;margin:6px 0;font-family:Consolas,monospace;font-size:13px;max-height:150px;overflow-y:auto;color:#94a3b8">';
+      (r.resolved||[]).forEach(function(f) { html += f + '<br>'; });
+      html += '</div>';
+      if ((r.locks||[]).length) {
+        html += '<strong style="color:#fbbf24">⚠ ' + r.locks.length + ' lock(s):</strong><br>';
+        r.locks.forEach(function(l) { html += '• ' + l.rel + ' — ' + (l.coder||'unknown') + '<br>'; });
+      }
+      html += '<br><strong>Target hosts:</strong> ' + (r.hosts||[]).map(function(h) { return h.host + ':' + h.port; }).join(', ');
+      statusEl.innerHTML = html;
+      return;
     }
 
     const errMsg = summarizeResult(res, data);
@@ -153,8 +176,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!urls.length)           { alert('Please paste at least one URL.'); return; }
     if (!username || !password) { alert('Username and password are required.'); return; }
 
-    // Confirmation modal
-    if (window.ppConfirmPublish) {
+    // Confirmation modal (skip for dry runs)
+    const dryRun = dryRunEl?.checked || false;
+    if (!dryRun && window.ppConfirmPublish) {
       const ok = await ppConfirmPublish(urls, 'External Live');
       if (!ok) return;
     }
