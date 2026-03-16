@@ -271,23 +271,33 @@ app.get("/api/update-check", async (req, res) => {
   if (!process.pkg) return res.json({ updateAvailable: false });
   if (_updateCache) return res.json(_updateCache);
 
-  try {
-    const data = await fetchJSON(
-      "https://api.github.com/repos/uditcic/prod-pusher/releases/latest"
-    );
+  const REPO = "uditcic/prod-pusher";
+  const sources = [
+    { url: `https://raw.githubusercontent.com/${REPO}/main/package.json`, type: "raw" },
+    { url: `https://api.github.com/repos/${REPO}/releases/latest`, type: "api" },
+  ];
 
-    const latestTag = (data.tag_name || "").replace(/^v/, "");
-    const updateAvailable = latestTag && latestTag !== CURRENT_VERSION;
-    _updateCache = {
-      updateAvailable,
-      currentVersion: CURRENT_VERSION,
-      latestVersion: latestTag || CURRENT_VERSION,
-      releaseUrl: data.html_url || "",
-    };
-    res.json(_updateCache);
-  } catch {
-    res.json({ updateAvailable: false });
+  for (const src of sources) {
+    try {
+      const data = await fetchJSON(src.url);
+      let latestVersion, releaseUrl;
+
+      if (src.type === "raw") {
+        latestVersion = (data.version || "").replace(/^v/, "");
+        releaseUrl = `https://github.com/${REPO}/releases/latest`;
+      } else {
+        latestVersion = (data.tag_name || "").replace(/^v/, "");
+        releaseUrl = data.html_url || `https://github.com/${REPO}/releases/latest`;
+      }
+
+      if (!latestVersion) continue;
+      const updateAvailable = latestVersion !== CURRENT_VERSION;
+      _updateCache = { updateAvailable, currentVersion: CURRENT_VERSION, latestVersion, releaseUrl };
+      return res.json(_updateCache);
+    } catch { /* try next source */ }
   }
+
+  res.json({ updateAvailable: false });
 });
 
 // ---------- Health ----------
