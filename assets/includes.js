@@ -1,6 +1,5 @@
 (function () {
   document.addEventListener('DOMContentLoaded', function () {
-    // 1. Fetch version from /api/health (starts immediately, result used later)
     var versionPromise = fetch('/api/health')
       .then(function (r) { return r.json(); })
       .then(function (d) { return d.version || ''; })
@@ -22,13 +21,11 @@
       function inject(html) {
         el.insertAdjacentHTML('afterend', html);
         el.remove();
-        // Wait for version, then fill all placeholders
         versionPromise.then(function (ver) { fillFooterData(ver); });
       }
 
       function attempt(i) {
         if (i >= tryList.length) {
-          // Fallback: build a minimal footer with dynamic data
           versionPromise.then(function (ver) {
             var now = new Date();
             var y = now.getFullYear();

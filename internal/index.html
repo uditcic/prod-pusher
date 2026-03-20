@@ -58,10 +58,12 @@
 </div>
 
 
-<!-- Include loader -->
+
 <script src="/assets/includes.js"></script>
 <script src="/assets/log-drawer.js"></script>
 <script src="/assets/quick-wins.js"></script>
+<script src="/assets/toast.js"></script>
+<script src="/assets/theme-toggle.js"></script>
 
 
  <script>
@@ -102,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function publishInternal(force = false) {
     const { payload, error } = buildPayload(force);
-    if (error) { alert(error); return; }
+    if (error) { if (window.ppToast) ppToast(error, 'warning'); else alert(error); return; }
 
     statusBox && (statusBox.style.display = 'block');
     statusEl  && (statusEl.textContent = payload.dryRun ? 'Running dry run…' : (force ? 'Publishing (forced)…' : 'Publishing…'));
@@ -116,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try { data = await res.json(); } catch {}
     } catch (err) {
       statusEl && (statusEl.textContent = 'Request failed: ' + err.message);
+      if (window.ppToast) ppToast('Request failed: ' + err.message, 'error');
       return;
     }
 
@@ -128,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return publishInternal(true);
     }
 
-    // Dry run preview
+
     if (data.dryRun && statusEl) {
       const r = data.results || {};
       let html = '<strong style="color:#22d3ee">DRY RUN — No files were uploaded</strong><br><br>';
@@ -142,13 +145,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       html += '<br><strong>Target:</strong> ' + (r.host || '') + ':' + (r.port || 21);
       statusEl.innerHTML = html;
+      if (window.ppToast) ppToast('Dry run complete — ' + (r.resolved||[]).length + ' file(s) resolved', 'info');
       return;
     }
 
     const errMsg = summarizeResult(res, data);
-    if (errMsg) { statusEl && (statusEl.textContent = 'Failed: ' + errMsg); return; }
+    if (errMsg) {
+      statusEl && (statusEl.textContent = 'Failed: ' + errMsg);
+      if (window.ppToast) ppToast('Publish failed: ' + errMsg, 'error');
+      return;
+    }
 
     statusEl && (statusEl.textContent = data?.message || 'Done.');
+    if (window.ppToast) ppToast(data?.message || 'Publish complete!', 'success');
     const convertSection = document.getElementById('convertSection');
     if (convertSection) convertSection.style.display = 'block';
   }
@@ -158,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const payloadCheck = buildPayload(false);
     if (payloadCheck.error) { alert(payloadCheck.error); return; }
 
-    // Confirmation modal (skip for dry runs)
+
     const dryRun = dryRunEl?.checked || false;
     if (!dryRun && window.ppConfirmPublish) {
       const ok = await ppConfirmPublish(urls, 'Internal Live');
@@ -167,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btn && (btn.disabled = true);
 
-    // Preflight locks without opening status box (prevents layout shift)
+
     try {
       const ck = await fetch('/api/check/locks-internal', {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -214,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  // Safety: if a previous dialog left the body "fixed", restore it
+
   const cs = getComputedStyle(document.body);
   if (cs.position === 'fixed') {
     const t = parseInt(document.body.style.top || '0', 10) || 0;

@@ -1,8 +1,3 @@
-/**
- * log-drawer.js — Self-contained bottom-drawer log viewer for Prod-Pusher.
- * Connects to /api/logs/stream (SSE) and renders real-time log entries.
- * Include on any page via <script src="/assets/log-drawer.js"></script>
- */
 (function () {
   'use strict';
 
@@ -23,13 +18,11 @@
     var count = 0;
     var userScrolled = false;
 
-    // Track whether user scrolled up manually
     entriesEl.addEventListener('scroll', function () {
       var atBottom = entriesEl.scrollHeight - entriesEl.scrollTop - entriesEl.clientHeight < 40;
       userScrolled = !atBottom;
     });
 
-    // Toggle expand/collapse
     toggleBtn.addEventListener('click', function () {
       var collapsed = drawer.classList.toggle('pp-drawer--collapsed');
       drawer.classList.toggle('pp-drawer--expanded', !collapsed);
@@ -37,14 +30,12 @@
       document.body.style.paddingBottom = collapsed ? '36px' : '280px';
     });
 
-    // Clear entries
     clearBtn.addEventListener('click', function () {
       entriesEl.innerHTML = '';
       count = 0;
       countEl.textContent = '';
     });
 
-    // SSE connection
     var es = new EventSource('/api/logs/stream');
 
     es.onopen = function () {
@@ -63,7 +54,6 @@
       var entry;
       try { entry = JSON.parse(ev.data); } catch { return; }
 
-      // Auto-open on publish start
       if (/\.start$/.test(entry.event) && drawer.classList.contains('pp-drawer--collapsed')) {
         toggleBtn.click();
       }
@@ -71,27 +61,22 @@
       var row = document.createElement('div');
       row.className = 'pp-drawer-row';
 
-      // Timestamp (HH:MM:SS)
       var ts = '';
       try { ts = new Date(entry.ts).toLocaleTimeString('en-GB', { hour12: false }); } catch { ts = ''; }
 
-      // Badge: [EXT] or [INT]
       var badge = '';
       var badgeClass = 'pp-badge-default';
       if (/^external\b/i.test(entry.event)) { badge = 'EXT'; badgeClass = 'pp-badge-ext'; }
       else if (/^internal\b/i.test(entry.event)) { badge = 'INT'; badgeClass = 'pp-badge-int'; }
 
-      // Event label — strip prefix and humanize
       var label = entry.event.replace(/^(external|internal)\./i, '').replace(/\./g, ' ');
 
-      // Severity color class
       var sevClass = '';
       if (/dryrun/i.test(entry.event)) sevClass = 'pp-sev-dry';
       else if (/done|end/i.test(entry.event)) sevClass = 'pp-sev-ok';
       else if (/error|crash/i.test(entry.event)) sevClass = 'pp-sev-err';
       else if (/lock/i.test(entry.event)) sevClass = 'pp-sev-warn';
 
-      // Detail snippet — pick the most useful fields
       var detail = '';
       var skip = { ts: 1, event: 1, password: 1 };
       var parts = [];
@@ -114,10 +99,8 @@
       count++;
       countEl.textContent = '(' + count + ')';
 
-      // Cap at 500 entries
       while (entriesEl.children.length > 500) entriesEl.removeChild(entriesEl.firstChild);
 
-      // Auto-scroll if user hasn't scrolled up
       if (!userScrolled) entriesEl.scrollTop = entriesEl.scrollHeight;
     };
   }

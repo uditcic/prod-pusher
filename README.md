@@ -60,6 +60,7 @@ Browse past publish sessions from the **📋 Publish History** page on the contr
 - Filterable by date range and environment (internal/external)
 - Paginated session list with outcome badges (success, partial, dry run, crash, blocked)
 - Expandable detail rows showing the full event timeline for each session
+- **Export to CSV** — download filtered results for reporting or audits
 - Data sourced from the JSON log files — no database needed
 
 ## UI Enhancements
@@ -69,6 +70,8 @@ Browse past publish sessions from the **📋 Publish History** page on the contr
 - **Copy to clipboard** — One-click copy for converted live URLs
 - **Confirmation modal** — Styled dialog showing file list before publishing (replaces browser `confirm()`)
 - **Activity log drawer** — Real-time SSE-powered log stream at the bottom of publishing pages, color-coded by severity (green = success, red = error, yellow = locks, cyan = dry run)
+- **Toast notifications** — Brief success/error/warning popups after publish actions, auto-dismiss after 4 seconds
+- **Dark/light theme toggle** — Click the moon/sun icon in the top-right corner; preference persisted via `localStorage`
 
 ## API Endpoints
 
@@ -132,6 +135,8 @@ prod-pusher/
 │   ├── includes.js         Dynamic footer loader (version from /api/health)
 │   ├── log-drawer.js       Real-time activity log drawer (SSE)
 │   ├── quick-wins.js       URL counter, whitespace strip, copy, confirm modal
+│   ├── toast.js            Toast notification system
+│   ├── theme-toggle.js     Dark/light theme toggle with localStorage
 │   └── lock-preflight.js   Shared lock-check logic
 ├── includes/
 │   └── footer.html         Shared footer template (version + date placeholders)

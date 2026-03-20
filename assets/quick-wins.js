@@ -1,14 +1,6 @@
-/**
- * quick-wins.js — shared enhancements for internal + external publish pages
- * 1. Live URL counter below textarea
- * 2. Whitespace / blank-line stripper (auto-clean on paste)
- * 3. Copy-to-clipboard button for converted URLs
- * 4. Styled confirmation modal (replaces browser confirm())
- */
 (function () {
   document.addEventListener('DOMContentLoaded', function () {
 
-    // ── 1. URL counter ──────────────────────────────────────────────
     var textarea = document.getElementById('stagingUrls') || document.getElementById('stagingUrlsExt');
     if (textarea) {
       var counter = document.createElement('div');
@@ -25,10 +17,8 @@
       updateCount();
     }
 
-    // ── 2. Whitespace stripper (auto-clean on paste) ────────────────
     if (textarea) {
       textarea.addEventListener('paste', function () {
-        // Defer so the pasted content is in the textarea
         setTimeout(function () {
           var cleaned = textarea.value
             .split(/\r?\n/)
@@ -37,13 +27,12 @@
             .join('\n');
           if (cleaned !== textarea.value) {
             textarea.value = cleaned;
-            textarea.dispatchEvent(new Event('input')); // re-trigger counter
+            textarea.dispatchEvent(new Event('input'));
           }
         }, 0);
       });
     }
 
-    // ── 3. Copy-to-clipboard for converted URLs ─────────────────────
     var convertedExt = document.getElementById('convertedUrlsExt');
     var convertedInt = document.getElementById('convertedUrls');
     var converted = convertedExt || convertedInt;
@@ -54,11 +43,9 @@
       copyBtn.style.display = 'none';
       converted.parentElement.appendChild(copyBtn);
 
-      // Show copy button when converted textarea gets content
       var observer = new MutationObserver(function () { checkShow(); });
       observer.observe(converted, { attributes: true, childList: true });
       converted.addEventListener('input', checkShow);
-      // Also poll briefly after convert button is clicked
       var convertBtn = document.getElementById('convertBtnExt') || document.getElementById('convertBtn');
       if (convertBtn) {
         convertBtn.addEventListener('click', function () {
@@ -80,8 +67,6 @@
       });
     }
 
-    // ── 4. Styled confirmation modal ────────────────────────────────
-    // Inject modal HTML + CSS once
     var style = document.createElement('style');
     style.textContent = [
       '.pp-url-counter { font-size:13px; color:#64748b; text-align:right; margin-top:4px; margin-bottom:8px; }',
@@ -101,10 +86,6 @@
     ].join('\n');
     document.head.appendChild(style);
 
-    /**
-     * Show a styled confirmation dialog before publishing.
-     * Returns a Promise that resolves to true (confirmed) or false (cancelled).
-     */
     window.ppConfirmPublish = function (urls, serverLabel) {
       return new Promise(function (resolve) {
         var overlay = document.createElement('div');
@@ -114,7 +95,6 @@
             '<h3>Confirm Publish to ' + (serverLabel || 'Live') + '</h3>' +
             '<div class="pp-summary">' + urls.length + ' file' + (urls.length !== 1 ? 's' : '') + ' will be uploaded:</div>' +
             '<div class="pp-file-list">' + urls.map(function (u) {
-              // Show just the path portion for readability
               try { return new URL(u).pathname; } catch (e) { return u; }
             }).join('<br>') + '</div>' +
             '<div class="pp-confirm-btns">' +
@@ -133,9 +113,7 @@
         overlay.querySelector('.pp-confirm-cancel').addEventListener('click', function () { cleanup(false); });
         overlay.querySelector('.pp-confirm-go').addEventListener('click', function () { cleanup(true); });
         overlay.addEventListener('click', function (e) { if (e.target === overlay) cleanup(false); });
-        // Focus the Publish button for keyboard accessibility
         overlay.querySelector('.pp-confirm-go').focus();
-        // Escape key cancels
         overlay.addEventListener('keydown', function (e) { if (e.key === 'Escape') cleanup(false); });
       });
     };

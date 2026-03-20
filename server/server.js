@@ -1,5 +1,3 @@
-// server/server.js
-// Prod-Pusher API: External (canada.ca) + Internal (Connexion) + lock checks + logging + diagnose
 process.noDeprecation = true;
 
 const posix = require("path").posix;
@@ -13,7 +11,6 @@ const { EventEmitter } = require("events");
 function openBrowser(port) {
   const url = `http://localhost:${port}/`;
 
-  // Try to launch Edge in app mode (standalone window, no tabs/address bar)
   const edgePaths = [
     "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
     "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -26,12 +23,10 @@ function openBrowser(port) {
       stdio: "ignore",
     }).unref();
   } else {
-    // Fallback: open in default browser as a regular tab
     exec(`cmd /c start "" "${url}"`, { shell: false });
   }
 }
 
-// Load modules from portable Node bundle (skip when running as a pkg exe)
 if (!process.pkg) {
   process.env.NODE_PATH = path.join(__dirname, "../node-v22/node_modules");
   require("module").Module._initPaths();
@@ -39,7 +34,6 @@ if (!process.pkg) {
 
 const express = require("express");
 
-// Try both casings for your helper (some repos used ftpClient.js vs ftpclient.js)
 let pushFiles;
 try { ({ pushFiles } = require("./ftpClient")); } catch { ({ pushFiles } = require("./ftpclient")); }
 
@@ -49,31 +43,22 @@ const PORT = Number(process.env.PORT || 3000);
 app.use(express.static(path.join(__dirname, "..")));
 app.use(express.json({ limit: "2mb" }));
 
-// ---------- Configuration (env overridable) ----------
 const CFG = {
-  // Local base to read files from
   DEV_LOCAL_BASE: process.env.DEV_LOCAL_BASE || "Z:\\",
 
-  // External: IRCC canada.ca live (Barrie + Gatineau)
   IRCC_FTP_HOSTS: (process.env.IRCC_FTP_HOSTS || "167.40.65.240,167.44.3.235")
     .split(",").map(s => s.trim()).filter(Boolean),
   IRCC_FTP_PORT: Number(process.env.IRCC_FTP_PORT || 21),
   IRCC_REMOTE_BASE: process.env.IRCC_REMOTE_BASE || "/cicnet/www_cicnet_gc_ca/",
-  IRCC_FTPS: process.env.IRCC_FTPS === "1", // optional explicit FTPS (TLS)
+  IRCC_FTPS: process.env.IRCC_FTPS === "1",
 
-  // Internal: Connexion live
   CONNEXION_FTP_HOST: process.env.CONNEXION_FTP_HOST || "10.24.221.168",
   CONNEXION_FTP_PORT: Number(process.env.CONNEXION_FTP_PORT || 21),
   CONNEXION_REMOTE_BASE: process.env.CONNEXION_REMOTE_BASE || "/cicintranet/",
   CONNEXION_LOCAL_BASE: process.env.CONNEXION_LOCAL_BASE || "Y:\\",
-  // If Connexion ever needs TLS, add CONNEXION_FTPS=1 and flip below where we call pushFiles
   CONNEXION_FTPS: process.env.CONNEXION_FTPS === "1",
 };
 
-// ---------- Minimal daily log (file + console) ----------
-// OLD:
-// const LOG_DIR = path.join(__dirname, "..", "logs");
-// NEW:
 const LOG_DIR = process.env.PP_LOG_DIR ||
   (process.pkg
     ? path.join(path.dirname(process.execPath), "logs")
@@ -94,9 +79,6 @@ function slog(event, detail = {}) {
   logBus.emit("log", entry);
 }
 
-// ---------- Helpers ----------
-
-// === Ensure remote directories exist (per file) ===
 const ftp = require("basic-ftp");
 
 async function ensureRemoteDirs({ host, port, user, password, remoteBase = "/", rels = [], ftps = false }) {
@@ -115,7 +97,6 @@ async function ensureRemoteDirs({ host, port, user, password, remoteBase = "/", 
       try {
         await client.ensureDir(remoteDir);
       } catch (e) {
-        // let pushFiles surface any remaining errors; this keeps preflight light
       }
     }
   } finally {
@@ -123,33 +104,27 @@ async function ensureRemoteDirs({ host, port, user, password, remoteBase = "/", 
   }
 }
 
-/** Convert a URL or path to a safe relative path (Windows backslashes) */
 function relFromInput(s) {
   let rel = String(s || "");
   try {
     const u = new URL(rel);
     rel = decodeURIComponent(u.pathname || "/");
-  } catch { /* not a URL */ }
+  } catch {}
   rel = rel.replace(/\\/g, "/");
   if (rel.startsWith("/")) rel = rel.slice(1);
-  // remove .. segments
   rel = rel.replace(/(^|\/)\.\.(?=\/|$)/g, "");
-  // folder → index.html
   if (!rel || /\/$/.test(rel)) rel += "index.html";
   return rel.replace(/\//g, "\\");
 }
 
-/** Return a list of absolute paths that do NOT exist under base */
 function missingUnderBase(base, rels) {
   return rels.map(r => path.join(base, r)).filter(abs => !fs.existsSync(abs));
 }
 
-// ---------- LOCK CHECK HELPERS (Classic ASP / header include flags) ----------
 function readText(absPath) {
   try { return fs.readFileSync(absPath, "utf8"); } catch { return null; }
 }
 
-// Extract coder/task from VBScript-like lines, skip comments starting with ' or Rem
 function extractCoderTaskFromText(txt) {
   if (!txt) return null;
   const lines = txt.split(/\r?\n/);
@@ -191,10 +166,8 @@ function resolveIncludeAbs(base, fileAbs, includePath) {
 function checkLockForFile(base, relPath) {
   const abs = path.join(base, relPath);
   const txt = readText(abs);
-  // 1) page itself
   const pageMeta = extractCoderTaskFromText(txt);
   if (pageMeta && pageMeta.locked) return { rel: relPath, abs, source: "file", ...pageMeta };
-  // 2) header includes
   const includes = findLikelyHeaderIncludes(txt || "");
   for (const inc of includes.slice(0, 3)) {
     const incAbs = resolveIncludeAbs(base, abs, inc);
@@ -217,11 +190,9 @@ function collectLocks(base, rels) {
   return out;
 }
 
-// ---------- Update check (exe only; cached per session) ----------
 const CURRENT_VERSION = require("../package.json").version;
 let _updateCache = null;
 
-/** Fetch JSON from a URL, respecting HTTP(S)_PROXY env vars + timeout. */
 function fetchJSON(url, timeoutMs = 5000) {
   return new Promise((resolve, reject) => {
     const parsed = new URL(url);
@@ -229,7 +200,6 @@ function fetchJSON(url, timeoutMs = 5000) {
 
     let req;
     if (proxyUrl) {
-      // Tunnel through corporate proxy via HTTP CONNECT
       const http = require("http");
       const proxy = new URL(proxyUrl);
       const connectReq = http.request({
@@ -294,13 +264,12 @@ app.get("/api/update-check", async (req, res) => {
       const updateAvailable = latestVersion !== CURRENT_VERSION;
       _updateCache = { updateAvailable, currentVersion: CURRENT_VERSION, latestVersion, releaseUrl };
       return res.json(_updateCache);
-    } catch { /* try next source */ }
+    } catch {}
   }
 
   res.json({ updateAvailable: false });
 });
 
-// ---------- Health ----------
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
@@ -321,7 +290,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// ---------- SSE: real-time log stream ----------
 app.get("/api/logs/stream", (req, res) => {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -334,12 +302,11 @@ app.get("/api/logs/stream", (req, res) => {
   let id = 0;
   const onLog = (entry) => {
     const safe = { ...entry };
-    delete safe.password; // belt-and-suspenders
+    delete safe.password;
     res.write(`id: ${++id}\ndata: ${JSON.stringify(safe)}\n\n`);
   };
   logBus.on("log", onLog);
 
-  // Keep-alive ping every 20s
   const heartbeat = setInterval(() => res.write(": ping\n\n"), 20000);
 
   req.on("close", () => {
@@ -348,7 +315,6 @@ app.get("/api/logs/stream", (req, res) => {
   });
 });
 
-// ---------- Check locks (External preflight; no upload) ----------
 app.post("/api/check/locks", (req, res) => {
   const urls = Array.isArray(req.body?.urls) ? req.body.urls : [];
   const rels = urls.map(relFromInput);
@@ -368,7 +334,6 @@ app.post("/api/check/locks", (req, res) => {
   res.json({ ok: true, locked, inspectedCount: inspected.length, inspected });
 });
 
-// ---------- Check locks (Connexion preflight; no upload) ----------
 app.post("/api/check/locks-internal", (req, res) => {
   const urls = Array.isArray(req.body?.urls) ? req.body.urls : [];
   const rels = urls.map(relFromInput);
@@ -388,7 +353,6 @@ app.post("/api/check/locks-internal", (req, res) => {
   res.json({ ok: true, locked, inspectedCount: inspected.length, inspected });
 });
 
-// ---------- Publish History ----------
 function parsePublishSessions(lines) {
   const sessions = [];
   let current = null;
@@ -444,7 +408,6 @@ app.get("/api/logs/history", (req, res) => {
     const fromDate = req.query.from || new Date(now - 30 * 86400000).toISOString().slice(0, 10);
     const toDate = req.query.to || now.toISOString().slice(0, 10);
 
-    // List log files in range
     let logFiles = [];
     try { logFiles = fs.readdirSync(LOG_DIR).filter(f => /^app-\d{8}\.log$/.test(f)).sort().reverse(); } catch {}
 
@@ -455,7 +418,6 @@ app.get("/api/logs/history", (req, res) => {
       return d && d >= fromStamp && d <= toStamp;
     });
 
-    // Parse all matching files into sessions
     let allSessions = [];
     for (const file of logFiles) {
       try {
@@ -465,10 +427,8 @@ app.get("/api/logs/history", (req, res) => {
       } catch {}
     }
 
-    // Sort newest first
     allSessions.sort((a, b) => b.ts.localeCompare(a.ts));
 
-    // Filter by env
     if (envFilter) allSessions = allSessions.filter(s => s.env === envFilter);
 
     const total = allSessions.length;
@@ -488,7 +448,7 @@ app.get("/api/logs/history", (req, res) => {
 
 app.get("/api/logs/history/:sessionId", (req, res) => {
   try {
-    const sessionId = req.params.sessionId; // ISO timestamp
+    const sessionId = req.params.sessionId;
     const dateStr = sessionId.slice(0, 10).replace(/-/g, "");
     const file = path.join(LOG_DIR, `app-${dateStr}.log`);
 
@@ -508,7 +468,6 @@ app.get("/api/logs/history/:sessionId", (req, res) => {
   }
 });
 
-// ---------- External (canada.ca) ----------
 app.post("/api/go-live/external", async (req, res) => {
   try {
     const urls = Array.isArray(req.body?.urls) ? req.body.urls : [];
@@ -533,7 +492,6 @@ app.post("/api/go-live/external", async (req, res) => {
       return res.status(400).json({ success: false, error: "Some files were not found locally.", missingFiles: missing });
     }
 
-    // --- Lock gate (block unless force:true) ---
     const locks = collectLocks(base, rels);
     if (locks.length && !force && !dryRun) {
       slog("external.locks.block", { count: locks.length, locks: locks.map(l => ({ rel: l.rel, coder: l.coder, task: l.task, src: l.source })) });
@@ -541,7 +499,6 @@ app.post("/api/go-live/external", async (req, res) => {
     }
     if (locks.length && force) slog("external.locks.force", { count: locks.length });
 
-    // --- Dry run: return preview without uploading ---
     if (dryRun) {
       slog("external.dryrun", { rels, lockCount: locks.length });
       return res.json({
@@ -561,17 +518,16 @@ app.post("/api/go-live/external", async (req, res) => {
     for (const host of CFG.IRCC_FTP_HOSTS) {
       try {
         slog("external.ftp.connect", { host, port: CFG.IRCC_FTP_PORT, remoteBase: CFG.IRCC_REMOTE_BASE, count: rels.length, ftps: CFG.IRCC_FTPS });
-await ensureRemoteDirs({
-  host,
-  port: CFG.IRCC_FTP_PORT,
-  user: username,
-  password,
-  remoteBase: CFG.IRCC_REMOTE_BASE,
-  rels,
-  ftps: CFG.IRCC_FTPS,
-});
+        await ensureRemoteDirs({
+          host,
+          port: CFG.IRCC_FTP_PORT,
+          user: username,
+          password,
+          remoteBase: CFG.IRCC_REMOTE_BASE,
+          rels,
+          ftps: CFG.IRCC_FTPS,
+        });
 
-          
         const result = await pushFiles({
           type: "external",
           host,
@@ -620,7 +576,6 @@ await ensureRemoteDirs({
   }
 });
 
-// ---------- Internal (Connexion) ----------
 app.post("/api/go-live/internal", async (req, res) => {
   try {
     const urls = Array.isArray(req.body?.urls) ? req.body.urls : [];
@@ -646,7 +601,6 @@ app.post("/api/go-live/internal", async (req, res) => {
       return res.status(400).json({ success: false, error: "Some files were not found locally.", missingFiles: missing });
     }
 
-    // --- Lock gate for Connexion (same behavior as External) ---
     const locks = collectLocks(base, rels);
     if (locks.length && !force && !dryRun) {
       slog("internal.locks.block", { count: locks.length, locks: locks.map(l => ({ rel: l.rel, coder: l.coder, task: l.task, src: l.source })) });
@@ -658,7 +612,6 @@ app.post("/api/go-live/internal", async (req, res) => {
     }
     if (locks.length && force) slog("internal.locks.force", { count: locks.length });
 
-    // --- Dry run: return preview without uploading ---
     if (dryRun) {
       slog("internal.dryrun", { rels, lockCount: locks.length });
       return res.json({
@@ -675,15 +628,15 @@ app.post("/api/go-live/internal", async (req, res) => {
       });
     }
 
-await ensureRemoteDirs({
-  host: CFG.CONNEXION_FTP_HOST,
-  port: CFG.CONNEXION_FTP_PORT,
-  user: username,
-  password,
-  remoteBase: CFG.CONNEXION_REMOTE_BASE,
-  rels,
-  ftps: CFG.CONNEXION_FTPS,
-});
+    await ensureRemoteDirs({
+      host: CFG.CONNEXION_FTP_HOST,
+      port: CFG.CONNEXION_FTP_PORT,
+      user: username,
+      password,
+      remoteBase: CFG.CONNEXION_REMOTE_BASE,
+      rels,
+      ftps: CFG.CONNEXION_FTPS,
+    });
 
     try {
       const result = await pushFiles({
@@ -695,7 +648,7 @@ await ensureRemoteDirs({
         localDir: base,
         remoteDir: CFG.CONNEXION_REMOTE_BASE,
         fileList: rels,
-        ftps: CFG.CONNEXION_FTPS, // stays false unless you set CONNEXION_FTPS=1
+        ftps: CFG.CONNEXION_FTPS,
       });
 
       let ok = 0, err = 0, note;
@@ -710,6 +663,7 @@ await ensureRemoteDirs({
       }
 
       slog("internal.ftp.done", { host: CFG.CONNEXION_FTP_HOST, ok, err, note });
+      slog("internal.end", { host: CFG.CONNEXION_FTP_HOST, totalOk: ok, totalErr: err });
       res.json({
         success: true,
         message: `Uploaded ${ok} item(s) to Connexion.`,
@@ -718,6 +672,7 @@ await ensureRemoteDirs({
     } catch (e) {
       const msg = String(e?.message || e);
       slog("internal.ftp.error", { host: CFG.CONNEXION_FTP_HOST, error: msg });
+      slog("internal.end", { host: CFG.CONNEXION_FTP_HOST, totalOk: 0, totalErr: rels.length });
       res.status(500).json({ success: false, error: msg });
     }
   } catch (e) {
@@ -727,7 +682,6 @@ await ensureRemoteDirs({
   }
 });
 
-// ---------- Diagnose login only (external; no upload) ----------
 app.post("/api/diagnose/external", async (req, res) => {
   const ftp = require("basic-ftp");
   const { username = process.env.IRCC_FTP_USER || "", password = process.env.IRCC_FTP_PASS } = req.body || {};
@@ -759,7 +713,6 @@ app.post("/api/diagnose/external", async (req, res) => {
   res.json({ ok: out.every(x => x.ok), results: out });
 });
 
-// ---------- Start ----------
 const server = app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
   if (process.pkg) openBrowser(PORT);

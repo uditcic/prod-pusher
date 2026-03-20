@@ -1,16 +1,13 @@
-/**
- * history.js — Fetches publish sessions from /api/logs/history
- * and renders them in a filterable, paginated table with expandable detail rows.
- */
 (function () {
   'use strict';
 
   var currentPage = 1;
   var pageSize    = 20;
-  var expandedIds = {};          // sessionId → true when detail row is visible
+  var expandedIds = {};
+
+  var lastSessions = [];
 
   document.addEventListener('DOMContentLoaded', function () {
-    // Set default date range: last 30 days → today
     var now   = new Date();
     var from  = new Date(now.getTime() - 30 * 86400000);
     var fromEl = document.getElementById('histFrom');
@@ -33,11 +30,13 @@
       loadHistory();
     });
 
-    // Initial load
+    var csvBtn = document.getElementById('histExportCsv');
+    if (csvBtn) {
+      csvBtn.addEventListener('click', function () { exportCsv(); });
+    }
+
     loadHistory();
   });
-
-  /* ─── Data fetching ──────────────────────────── */
 
   function loadHistory() {
     var fromEl = document.getElementById('histFrom');
@@ -55,8 +54,11 @@
     fetch('/api/logs/history?' + params.toString())
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        renderTable(data.sessions || []);
+        lastSessions = data.sessions || [];
+        renderTable(lastSessions);
         renderPager(data);
+        var csvBtn = document.getElementById('histExportCsv');
+        if (csvBtn) csvBtn.style.display = lastSessions.length ? 'inline-block' : 'none';
       })
       .catch(function (err) {
         console.error('History fetch error', err);
@@ -79,8 +81,6 @@
       });
   }
 
-  /* ─── Rendering ──────────────────────────────── */
-
   function renderTable(sessions) {
     var tbody  = document.getElementById('histBody');
     var empty  = document.getElementById('histEmpty');
@@ -93,7 +93,6 @@
     empty.style.display = 'none';
 
     sessions.forEach(function (s) {
-      // Main row
       var tr = document.createElement('tr');
       tr.innerHTML =
         '<td><button class="hist-expand" data-id="' + esc(s.id) + '" title="Expand details">▶</button></td>' +
@@ -108,7 +107,6 @@
         '<td>' + s.totalOk + ' / ' + s.totalErr + '</td>';
       tbody.appendChild(tr);
 
-      // Hidden detail row
       var detailTr = document.createElement('tr');
       detailTr.className = 'hist-detail-row';
       detailTr.style.display = 'none';
@@ -118,7 +116,6 @@
       detailTr.appendChild(td);
       tbody.appendChild(detailTr);
 
-      // Expand/collapse handler
       tr.querySelector('.hist-expand').addEventListener('click', function () {
         var btn = this;
         var id  = btn.getAttribute('data-id');
@@ -188,7 +185,43 @@
     next.disabled = !data.hasMore;
   }
 
-  /* ─── Helpers ────────────────────────────────── */
+  function exportCsv() {
+    if (!lastSessions.length) return;
+
+    var header = ['Date/Time', 'User', 'Environment', 'Files', 'Outcome', 'OK', 'Errors', 'Dry Run', 'Forced'];
+    var rows = lastSessions.map(function (s) {
+      return [
+        formatTs(s.ts),
+        s.username || '',
+        s.env,
+        s.fileCount,
+        s.outcome,
+        s.totalOk,
+        s.totalErr,
+        s.dryRun ? 'Yes' : '',
+        s.force ? 'Yes' : '',
+      ].map(csvCell).join(',');
+    });
+
+    var csv = header.join(',') + '\n' + rows.join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'publish-history-' + isoDate(new Date()) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    if (window.ppToast) ppToast('CSV exported (' + lastSessions.length + ' sessions)', 'success');
+  }
+
+  function csvCell(val) {
+    var s = String(val == null ? '' : val);
+    if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
 
   function isoDate(d) {
     return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
