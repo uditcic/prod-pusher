@@ -6,10 +6,8 @@
   <title>Publish History — Prod-Pusher</title>
   <link rel="stylesheet" href="../style.css" />
   <style>
-    /* History page overrides */
     .container { max-width: 900px; text-align: left; }
 
-    /* Filter bar */
     .hist-filters {
       display: flex; flex-wrap: wrap; gap: 10px;
       align-items: flex-end; margin-bottom: 18px;
@@ -26,7 +24,6 @@
     }
     .hist-filters button:hover { background: #0369a1; }
 
-    /* Table */
     .hist-table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .hist-table th {
       text-align: left; padding: 10px 8px; color: #38bdf8;
@@ -39,7 +36,6 @@
     .hist-table tr:hover td { background: #1a2332; }
     .hist-table tr.hist-detail-row td { padding: 0; }
 
-    /* Outcome badges */
     .hist-badge {
       display: inline-block; padding: 2px 8px; border-radius: 4px;
       font-size: 11px; font-weight: 700; text-transform: uppercase;
@@ -52,18 +48,15 @@
     .badge-missing  { background: #44403c; color: #a8a29e; }
     .badge-incomplete { background: #1e293b; color: #64748b; }
 
-    /* Env badges */
     .env-ext { color: #38bdf8; }
     .env-int { color: #c084fc; }
 
-    /* Expand toggle */
     .hist-expand {
       background: none; border: none; color: #64748b;
       cursor: pointer; font-size: 14px; padding: 0 4px;
     }
     .hist-expand:hover { color: #e2e8f0; }
 
-    /* Detail panel */
     .hist-detail {
       background: #0f172a; border-radius: 6px;
       margin: 4px 8px 10px; padding: 12px 14px;
@@ -79,7 +72,6 @@
     .evt-name { color: #e2e8f0; flex-shrink: 0; }
     .evt-data { color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* Pagination */
     .hist-pager {
       display: flex; justify-content: center; align-items: center;
       gap: 12px; margin-top: 16px;
@@ -92,12 +84,10 @@
     .hist-pager button:not(:disabled):hover { background: #475569; }
     .hist-pager span { color: #94a3b8; font-size: 13px; }
 
-    /* Empty state */
     .hist-empty {
       text-align: center; padding: 40px 0; color: #64748b; font-size: 15px;
     }
 
-    /* Back button alignment */
     .hist-back { margin-top: 20px; text-align: center; }
 
     @media (max-width: 768px) {
@@ -112,7 +102,6 @@
     <h1>📋 Publish History</h1>
     <p>Review past publish sessions — successful uploads, dry runs, and errors.</p>
 
-    <!-- Filter bar -->
     <div class="hist-filters">
       <label>From
         <input type="date" id="histFrom" />
@@ -128,9 +117,9 @@
         </select>
       </label>
       <button id="histSearch">Search</button>
+      <button id="histExportCsv" style="display:none;background:#334155" title="Export current results to CSV">Export CSV</button>
     </div>
 
-    <!-- Results table -->
     <table class="hist-table" id="histTable">
       <thead>
         <tr>
@@ -143,16 +132,13 @@
           <th>OK / Err</th>
         </tr>
       </thead>
-      <tbody id="histBody">
-        <!-- rows injected by history.js -->
-      </tbody>
+      <tbody id="histBody"></tbody>
     </table>
 
     <div class="hist-empty" id="histEmpty" style="display:none;">
       No publish sessions found for the selected range.
     </div>
 
-    <!-- Pagination -->
     <div class="hist-pager" id="histPager" style="display:none;">
       <button id="histPrev" disabled>← Prev</button>
       <span id="histPageInfo">Page 1</span>
@@ -171,6 +157,8 @@
   </div>
 
   <script src="/assets/includes.js"></script>
+  <script src="/assets/toast.js"></script>
+  <script src="/assets/theme-toggle.js"></script>
   <script src="/history/history.js"></script>
 </body>
 </html>
