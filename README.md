@@ -2,23 +2,6 @@
 
 Portable Node.js desktop tool for publishing web content to production servers via FTP. Handles both external and internal publishing with developer lock checking, preflight validation, dry run previews, and per-user logging.
 
-## Quick Start
-
-```bash
-npm install
-npm start
-```
-
-Or on Windows, double-click `launch.bat`. The app opens at `http://localhost:3000` in Edge app mode.
-
-### Build Portable Executable
-
-```bash
-npm run build:exe
-```
-
-Produces `dist/Prod-Pusher.exe` (Node 22, Windows x64).
-
 ## Workflows
 
 ### External Publishing
