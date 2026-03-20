@@ -43,7 +43,7 @@
 </div>
  <script>
 document.addEventListener('DOMContentLoaded', () => {
-  // Safety: if a previous dialog left the body "fixed", restore it
+
   const cs = getComputedStyle(document.body);
   if (cs.position === 'fixed') {
     const t = parseInt(document.body.style.top || '0', 10) || 0;
@@ -72,5 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 <script src="/assets/includes.js"></script>
+<script src="/assets/toast.js"></script>
+<script src="/assets/theme-toggle.js"></script>
 </body>
 </html>

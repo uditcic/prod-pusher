@@ -52,10 +52,12 @@
 </div>
 
 
-<!-- Include loader -->
+
 <script src="/assets/includes.js"></script>
 <script src="/assets/log-drawer.js"></script>
 <script src="/assets/quick-wins.js"></script>
+<script src="/assets/toast.js"></script>
+<script src="/assets/theme-toggle.js"></script>
 
 
  <script>
@@ -90,15 +92,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const toLive  = s => LIVE_ORIGIN  + relFromAny(s);
   const toStage = s => STAGE_ORIGIN + relFromAny(s);
 
-  // remember password for this tab
+
   const savedP = sessionStorage.getItem('pp.ext.pass');
   if (savedP) { passEl.value = savedP; if (remember) remember.checked = true; }
 
-  // Helper to summarize host errors (handles success:true + errors case)
+
   function summarizeResult(res, data) {
-    // HTTP error -> show error
+
     if (!res.ok) return data?.error || `HTTP ${res.status}`;
-    // Look for host-level errors even on 200
+
     const hosts = data?.results?.hosts || [];
     const errs  = hosts.filter(h => (h.err || 0) > 0 || h.error);
     if (errs.length) {
@@ -129,10 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
       try { data = await res.json(); } catch {}
     } catch (err) {
       statusEl.textContent = 'Request failed: ' + err.message;
+      if (window.ppToast) ppToast('Request failed: ' + err.message, 'error');
       return;
     }
 
-    // 409 lock -> prompt -> optional retry with force:true
+
     if (res.status === 409 && data?.locks?.length && !force) {
       const y = window.scrollY; // preserve scroll to avoid layout jump confusion
       const list = data.locks.map(l => `• ${l.rel} — ${l.coder || 'unknown'}`).join('\n');
@@ -142,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return publish(true);
     }
 
-    // Dry run preview
+
     if (data.dryRun) {
       const r = data.results || {};
       let html = '<strong style="color:#22d3ee">DRY RUN — No files were uploaded</strong><br><br>';
@@ -156,16 +159,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       html += '<br><strong>Target hosts:</strong> ' + (r.hosts||[]).map(function(h) { return h.host + ':' + h.port; }).join(', ');
       statusEl.innerHTML = html;
+      if (window.ppToast) ppToast('Dry run complete — ' + (r.resolved||[]).length + ' file(s) resolved', 'info');
       return;
     }
 
     const errMsg = summarizeResult(res, data);
     if (errMsg) {
       statusEl.textContent = 'Failed: ' + errMsg;
+      if (window.ppToast) ppToast('Publish failed: ' + errMsg, 'error');
       return;
     }
 
     statusEl.textContent = data?.message || 'Done.';
+    if (window.ppToast) ppToast(data?.message || 'Publish complete!', 'success');
     if (convertBox) convertBox.style.display = 'block';
   }
 
@@ -173,10 +179,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const urls     = lines();
     const username = (userEl.value || '').trim();
     const password = passEl.value || '';
-    if (!urls.length)           { alert('Please paste at least one URL.'); return; }
-    if (!username || !password) { alert('Username and password are required.'); return; }
+    if (!urls.length)           { if (window.ppToast) ppToast('Please paste at least one URL.', 'warning'); else alert('Please paste at least one URL.'); return; }
+    if (!username || !password) { if (window.ppToast) ppToast('Username and password are required.', 'warning'); else alert('Username and password are required.'); return; }
 
-    // Confirmation modal (skip for dry runs)
+
     const dryRun = dryRunEl?.checked || false;
     if (!dryRun && window.ppConfirmPublish) {
       const ok = await ppConfirmPublish(urls, 'External Live');
@@ -188,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     goBtn.disabled = true;
 
-    // Preflight locks WITHOUT opening the status box (avoids layout shift)
+
     try {
       const ck = await fetch('/api/check/locks', {
         method: 'POST',
@@ -212,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
     } catch {
-      // ignore preflight failure; proceed to publish
+
     }
 
     await publish(false);
@@ -232,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  // Safety: if a previous dialog left the body "fixed", restore it
+
   const cs = getComputedStyle(document.body);
   if (cs.position === 'fixed') {
     const t = parseInt(document.body.style.top || '0', 10) || 0;
