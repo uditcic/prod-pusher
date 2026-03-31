@@ -1,5 +1,56 @@
 # Prod-Pusher Changelog
 
+## v3.2 (March 2026)
+
+### Improvements
+
+#### 🧹 Smarter Auto-Cleanup
+- Now scans Desktop, Downloads, and Documents in addition to the exe's own directory — old versions are found regardless of where the user put them
+- Before deleting a locked file, the old process is stopped first via PowerShell (`Stop-Process`), then the file is removed — no more leftover exes when both versions are open at the same time
+- Full path comparison when filtering candidates prevents accidentally matching the currently running exe
+
+---
+
+**Release Date:** March 31, 2026
+**Author:** Udit Kumar
+
+---
+
+## v3.1 (March 2026)
+
+### New Features
+
+#### 🧹 Auto-Cleanup Old Versions
+- Automatically deletes previous Prod-Pusher exe files when launching a new release
+- Scans exe directory on startup for old `prod-pusher*.exe` files
+- Direct deletion for unlocked files, falls back to delayed PowerShell delete for locked files
+- Works even when old version is still running (waits for process to release file)
+- All cleanup actions logged to `logs/app-*.log` with `cleanup.*` events
+
+### UI/UX Improvements
+
+#### 🖥️ App Shell Layout
+- New sticky app bar at the top of every page with `PROD-PUSHER` branding
+- Control panel shows version number in the app bar (fetched from health API)
+- Sub-pages (internal, external, history) include a `← Back` navigation link
+- Body layout changed from centered floating card to top-down app flow with proper top padding
+- Container widened and repositioned for a desktop-app feel
+
+#### 🎯 Custom Favicon
+- All pages now use the Prod-Pusher icon (`assets/icon.ico`) as the browser/taskbar favicon
+- Matches the exe icon for consistent branding across taskbar and browser tabs
+
+### Bug Fixes
+
+- **Fixed publish history logging**: Internal publish route now correctly logs `internal.end` events for successful and failed uploads, ensuring history page shows accurate outcomes instead of "incomplete"
+
+---
+
+**Release Date:** March 31, 2026
+**Author:** Udit Kumar
+
+---
+
 ## v3.0 (March 2026)
 
 ### Major Features
@@ -37,29 +88,8 @@
 - More reliable version detection on restricted networks
 - Single-session caching to reduce API calls
 
-#### 🧹 Auto-Cleanup Old Versions
-- Automatically deletes previous Prod-Pusher versions when launching a new release
-- Scans exe directory on startup for old `prod-pusher*.exe` files
-- Direct deletion for unlocked files, falls back to delayed PowerShell delete for locked files
-- Works even when old version is still running (waits for process to release file)
-- All cleanup actions logged to `logs/app-*.log` with `cleanup.*` events
-
-### UI/UX Improvements
-
-#### 🖥️ App Shell Layout
-- New sticky app bar at the top of every page with `PROD-PUSHER` branding
-- Control panel shows version number in the app bar (fetched from health API)
-- Sub-pages (internal, external, history) include a `← Back` navigation link
-- Body layout changed from centered floating card to top-down app flow with proper top padding
-- Container widened and repositioned for a desktop-app feel
-
-#### 🎯 Custom Favicon
-- All pages now use the Prod-Pusher icon (`assets/icon.ico`) as the browser/taskbar favicon
-- Matches the exe icon for consistent branding across taskbar and browser tabs
-
 ### Bug Fixes
 
-- **Fixed publish history logging**: Internal publish route now correctly logs `internal.end` events for successful and failed uploads, ensuring history page shows accurate outcomes
 - **Fixed toast close button layout**: Resolved CSS conflict where global button width rule (`width: 100%` on mobile) squashed toast close button
 - **Fixed theme flash-of-unstyled-content**: Theme script now reads and applies saved preference synchronously before DOMContentLoaded
 - **Fixed history pagination**: Sessions now sorted newest-first by default
@@ -75,49 +105,29 @@
 ```
 prod-pusher/
 ├── index.html                    # Control panel
-├── style.css                     # Global styles (theme overrides applied externally)
+├── style.css                     # Global styles
 ├── assets/
 │   ├── icon.ico                 # App icon (favicon + exe)
-│   ├── toast.js                 # Toast notification system (new)
-│   ├── theme-toggle.js          # Dark/light theme toggle (new)
+│   ├── toast.js                 # Toast notification system
+│   ├── theme-toggle.js          # Dark/light theme toggle
 │   ├── log-drawer.js
 │   ├── quick-wins.js
 │   └── includes.js
-├── history/                      # History page (new)
+├── history/
 │   ├── index.html
 │   └── history.js
 ├── internal/
-│   └── index.html               # Now with toast notifications
+│   └── index.html
 ├── external/
-│   └── index.html               # Now with toast notifications
+│   └── index.html
 ├── server/
 │   ├── server.js                # Express API + publish routes
 │   ├── ftpClient.js
 │   └── ftpclient.js
-└── package.json                 # Updated assets, v3.0
+└── package.json
 ```
-
-### Breaking Changes
-
-None. v3.0 is fully backward compatible with v2.x.
-
-### Migration Guide
-
-No migration needed. Simply replace the executable or redeploy.
-
-### Known Limitations
-
-- History is cleared when logs are archived (default retention: 30 days in-app, logs stored on-disk)
-- CSV export does not include raw event logs (only session summaries)
-- Theme preference is browser-local (not synced across devices)
-
-### What's Next
-
-- Option to delete live files from production
-- Scheduled/batch publishing
-- Email notifications on publish completion
 
 ---
 
-**Release Date:** March 31, 2026
+**Release Date:** March 18, 2026
 **Author:** Udit Kumar
