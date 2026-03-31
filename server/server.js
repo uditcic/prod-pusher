@@ -237,6 +237,17 @@ function fetchJSON(url, timeoutMs = 5000) {
   });
 }
 
+function compareVersions(a, b) {
+  const pa = String(a).split(".").map(Number);
+  const pb = String(b).split(".").map(Number);
+  const len = Math.max(pa.length, pb.length);
+  for (let i = 0; i < len; i++) {
+    const diff = (pa[i] || 0) - (pb[i] || 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
+}
+
 app.get("/api/update-check", async (req, res) => {
   if (!process.pkg) return res.json({ updateAvailable: false });
   if (_updateCache) return res.json(_updateCache);
@@ -246,6 +257,8 @@ app.get("/api/update-check", async (req, res) => {
     { url: `https://raw.githubusercontent.com/${REPO}/main/package.json`, type: "raw" },
     { url: `https://api.github.com/repos/${REPO}/releases/latest`, type: "api" },
   ];
+
+  let best = null;
 
   for (const src of sources) {
     try {
@@ -261,10 +274,16 @@ app.get("/api/update-check", async (req, res) => {
       }
 
       if (!latestVersion) continue;
-      const updateAvailable = latestVersion !== CURRENT_VERSION;
-      _updateCache = { updateAvailable, currentVersion: CURRENT_VERSION, latestVersion, releaseUrl };
-      return res.json(_updateCache);
+      if (!best || compareVersions(latestVersion, best.latestVersion) > 0) {
+        best = { latestVersion, releaseUrl };
+      }
     } catch {}
+  }
+
+  if (best) {
+    const updateAvailable = compareVersions(best.latestVersion, CURRENT_VERSION) > 0;
+    _updateCache = { updateAvailable, currentVersion: CURRENT_VERSION, latestVersion: best.latestVersion, releaseUrl: best.releaseUrl };
+    return res.json(_updateCache);
   }
 
   res.json({ updateAvailable: false });
