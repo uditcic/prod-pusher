@@ -4,9 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Prod-Pusher Control Panel</title>
+<link rel="icon" href="/assets/icon.ico" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+<div class="app-bar">
+  <span class="app-bar__title">PROD-PUSHER</span>
+  <span class="app-bar__version" id="app-bar-version"></span>
+</div>
 <div class="container">
   <h1>🚀 Prod-Pusher Control Panel</h1>
   <p>Select the environment to upload your files.</p>
@@ -57,6 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 (async () => {
+  try {
+    const h = await fetch('/api/health');
+    const hd = await h.json();
+    const vEl = document.getElementById('app-bar-version');
+    if (vEl && hd.version) vEl.textContent = 'v' + hd.version;
+  } catch {}
   try {
     const r = await fetch('/api/update-check');
     const d = await r.json();
