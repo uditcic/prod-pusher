@@ -713,6 +713,46 @@ app.post("/api/diagnose/external", async (req, res) => {
   res.json({ ok: out.every(x => x.ok), results: out });
 });
 
+function cleanupOldVersions() {
+  if (!process.pkg) return;
+  const exeDir = path.dirname(process.execPath);
+  const currentExe = path.basename(process.execPath).toLowerCase();
+  slog("cleanup.scan", { dir: exeDir, currentExe });
+
+  let files;
+  try { files = fs.readdirSync(exeDir); } catch { return; }
+
+  const oldExes = files.filter(f => {
+    const lower = f.toLowerCase();
+    return lower !== currentExe
+      && lower.endsWith(".exe")
+      && /prod.?pusher/i.test(lower);
+  });
+
+  if (!oldExes.length) {
+    slog("cleanup.none", { scanned: files.filter(f => f.toLowerCase().endsWith(".exe")).length });
+    return;
+  }
+
+  for (const old of oldExes) {
+    const fullPath = path.join(exeDir, old);
+    try {
+      fs.unlinkSync(fullPath);
+      slog("cleanup.deleted", { file: old });
+    } catch {
+      const escaped = fullPath.replace(/'/g, "''");
+      const ps = `Start-Sleep -Seconds 3; Remove-Item -LiteralPath '${escaped}' -Force -ErrorAction SilentlyContinue`;
+      spawn("powershell", ["-NoProfile", "-WindowStyle", "Hidden", "-Command", ps], {
+        detached: true,
+        stdio: "ignore",
+      }).unref();
+      slog("cleanup.deferred", { file: old });
+    }
+  }
+}
+
+if (process.pkg) cleanupOldVersions();
+
 const server = app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
   if (process.pkg) openBrowser(PORT);
