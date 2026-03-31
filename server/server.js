@@ -715,38 +715,49 @@ app.post("/api/diagnose/external", async (req, res) => {
 
 function cleanupOldVersions() {
   if (!process.pkg) return;
-  const exeDir = path.dirname(process.execPath);
-  const currentExe = path.basename(process.execPath).toLowerCase();
-  slog("cleanup.scan", { dir: exeDir, currentExe });
+  const currentExePath = process.execPath.toLowerCase();
+  const currentExe = path.basename(currentExePath);
 
-  let files;
-  try { files = fs.readdirSync(exeDir); } catch { return; }
+  const userProfile = process.env.USERPROFILE || process.env.HOME || "";
+  const dirsToScan = new Set([
+    path.dirname(process.execPath),
+    path.join(userProfile, "Desktop"),
+    path.join(userProfile, "Downloads"),
+    path.join(userProfile, "Documents"),
+  ]);
 
-  const oldExes = files.filter(f => {
-    const lower = f.toLowerCase();
-    return lower !== currentExe
-      && lower.endsWith(".exe")
-      && /prod.?pusher/i.test(lower);
-  });
+  for (const dir of dirsToScan) {
+    let files;
+    try { files = fs.readdirSync(dir); } catch { continue; }
+    slog("cleanup.scan", { dir, currentExe });
 
-  if (!oldExes.length) {
-    slog("cleanup.none", { scanned: files.filter(f => f.toLowerCase().endsWith(".exe")).length });
-    return;
-  }
+    const oldExes = files.filter(f => {
+      const lower = f.toLowerCase();
+      return path.join(dir, f).toLowerCase() !== currentExePath
+        && lower.endsWith(".exe")
+        && /prod.?pusher/i.test(lower);
+    });
 
-  for (const old of oldExes) {
-    const fullPath = path.join(exeDir, old);
-    try {
-      fs.unlinkSync(fullPath);
-      slog("cleanup.deleted", { file: old });
-    } catch {
-      const escaped = fullPath.replace(/'/g, "''");
-      const ps = `Start-Sleep -Seconds 3; Remove-Item -LiteralPath '${escaped}' -Force -ErrorAction SilentlyContinue`;
-      spawn("powershell", ["-NoProfile", "-WindowStyle", "Hidden", "-Command", ps], {
-        detached: true,
-        stdio: "ignore",
-      }).unref();
-      slog("cleanup.deferred", { file: old });
+    if (!oldExes.length) continue;
+
+    for (const old of oldExes) {
+      const fullPath = path.join(dir, old);
+      try {
+        fs.unlinkSync(fullPath);
+        slog("cleanup.deleted", { file: old, dir });
+      } catch {
+        const escaped = fullPath.replace(/'/g, "''");
+        const ps = [
+          `$procs = Get-Process | Where-Object { $_.Path -eq '${escaped}' }`,
+          `if ($procs) { $procs | Stop-Process -Force; Start-Sleep -Seconds 2 }`,
+          `Remove-Item -LiteralPath '${escaped}' -Force -ErrorAction SilentlyContinue`,
+        ].join("; ");
+        spawn("powershell", ["-NoProfile", "-WindowStyle", "Hidden", "-Command", ps], {
+          detached: true,
+          stdio: "ignore",
+        }).unref();
+        slog("cleanup.deferred", { file: old, dir });
+      }
     }
   }
 }
