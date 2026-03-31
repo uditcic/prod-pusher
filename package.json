@@ -1,6 +1,6 @@
 {
   "name": "prod-pusher",
-  "version": "3.0",
+  "version": "3.2",
   "description": "Portable internal/external file-push tool (Node + basic-ftp)",
   "main": "server/server.js",
   "bin": "server/server.js",
