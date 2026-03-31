@@ -37,6 +37,26 @@
 - More reliable version detection on restricted networks
 - Single-session caching to reduce API calls
 
+#### 🧹 Auto-Cleanup Old Versions
+- Automatically deletes previous Prod-Pusher versions when launching a new release
+- Scans exe directory on startup for old `prod-pusher*.exe` files
+- Direct deletion for unlocked files, falls back to delayed PowerShell delete for locked files
+- Works even when old version is still running (waits for process to release file)
+- All cleanup actions logged to `logs/app-*.log` with `cleanup.*` events
+
+### UI/UX Improvements
+
+#### 🖥️ App Shell Layout
+- New sticky app bar at the top of every page with `PROD-PUSHER` branding
+- Control panel shows version number in the app bar (fetched from health API)
+- Sub-pages (internal, external, history) include a `← Back` navigation link
+- Body layout changed from centered floating card to top-down app flow with proper top padding
+- Container widened and repositioned for a desktop-app feel
+
+#### 🎯 Custom Favicon
+- All pages now use the Prod-Pusher icon (`assets/icon.ico`) as the browser/taskbar favicon
+- Matches the exe icon for consistent branding across taskbar and browser tabs
+
 ### Bug Fixes
 
 - **Fixed publish history logging**: Internal publish route now correctly logs `internal.end` events for successful and failed uploads, ensuring history page shows accurate outcomes
@@ -57,6 +77,7 @@ prod-pusher/
 ├── index.html                    # Control panel
 ├── style.css                     # Global styles (theme overrides applied externally)
 ├── assets/
+│   ├── icon.ico                 # App icon (favicon + exe)
 │   ├── toast.js                 # Toast notification system (new)
 │   ├── theme-toggle.js          # Dark/light theme toggle (new)
 │   ├── log-drawer.js
@@ -98,5 +119,5 @@ No migration needed. Simply replace the executable or redeploy.
 
 ---
 
-**Release Date:** March 18, 2026
+**Release Date:** March 31, 2026
 **Author:** Udit Kumar
