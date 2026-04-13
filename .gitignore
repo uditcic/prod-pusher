@@ -1,3 +1,6 @@
 /dist
 /.github/.claude
 .claude/launch.json
+.DS_Store
+node-v22/.DS_Store
+node-v22/node_modules/.DS_Store

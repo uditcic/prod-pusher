@@ -372,6 +372,26 @@ app.post("/api/check/locks-internal", (req, res) => {
   res.json({ ok: true, locked, inspectedCount: inspected.length, inspected });
 });
 
+// ---------- Resolve (preview local paths; no upload) ----------
+app.post("/api/resolve", (req, res) => {
+  const urls = Array.isArray(req.body?.urls) ? req.body.urls : [];
+  if (!urls.length) return res.status(400).json({ ok: false, error: "No URLs provided." });
+
+  const results = urls.map(u => {
+    const rel  = relFromInput(u);
+    const extAbs  = path.join(CFG.DEV_LOCAL_BASE,       rel);
+    const intAbs  = path.join(CFG.CONNEXION_LOCAL_BASE, rel);
+    return {
+      input:      u,
+      rel,
+      external:   { base: CFG.DEV_LOCAL_BASE,       abs: extAbs, exists: fs.existsSync(extAbs) },
+      internal:   { base: CFG.CONNEXION_LOCAL_BASE, abs: intAbs, exists: fs.existsSync(intAbs) },
+    };
+  });
+
+  res.json({ ok: true, count: results.length, results });
+});
+
 function parsePublishSessions(lines) {
   const sessions = [];
   let current = null;
