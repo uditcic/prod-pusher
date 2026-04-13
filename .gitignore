@@ -4,3 +4,4 @@
 .DS_Store
 node-v22/.DS_Store
 node-v22/node_modules/.DS_Store
+*.md

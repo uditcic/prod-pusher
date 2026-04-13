@@ -18,7 +18,6 @@
       "internal/**/*",
       "external/**/*",
       "history/**/*",
-      "promote/**/*",
       "resolve/**/*"
     ],
     "scripts": "server/**/*.js"

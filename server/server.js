@@ -752,6 +752,36 @@ app.post("/api/diagnose/external", async (req, res) => {
   res.json({ ok: out.every(x => x.ok), results: out });
 });
 
+// ---------- Diagnose login only (internal/Connexion; no upload) ----------
+app.post("/api/diagnose/internal", async (req, res) => {
+  const ftp = require("basic-ftp");
+  const { username = process.env.CONNEXION_FTP_USER || "", password = process.env.CONNEXION_FTP_PASS } = req.body || {};
+  const client = new ftp.Client(15000);
+  client.ftp.verbose = true;
+  const out = [];
+  try {
+    await client.access({
+      host: CFG.CONNEXION_FTP_HOST,
+      port: CFG.CONNEXION_FTP_PORT,
+      user: username,
+      password,
+      secure: CFG.CONNEXION_FTPS,
+      secureOptions: { rejectUnauthorized: false },
+    });
+    const pwd = await client.pwd();
+    try {
+      await client.ensureDir(CFG.CONNEXION_REMOTE_BASE || "/");
+      out.push({ host: CFG.CONNEXION_FTP_HOST, ok: true, pwd, remoteBase: CFG.CONNEXION_REMOTE_BASE });
+    } catch (e) {
+      out.push({ host: CFG.CONNEXION_FTP_HOST, ok: false, stage: "ensureDir", error: String(e?.message || e) });
+    }
+  } catch (e) {
+    out.push({ host: CFG.CONNEXION_FTP_HOST, ok: false, stage: "connect/login", error: String(e?.message || e) });
+  } finally { client.close(); }
+  slog("internal.diagnose", { out });
+  res.json({ ok: out.every(x => x.ok), results: out });
+});
+
 function cleanupOldVersions() {
   if (!process.pkg) return;
   const currentExePath = process.execPath.toLowerCase();
