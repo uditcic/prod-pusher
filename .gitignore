@@ -1,0 +1,11 @@
+# This is a releases-only repository.
+# Source code is maintained separately and is not committed here.
+# Only README.md and package.json belong in this repo.
+
+# Ignore everything...
+*
+
+# ...except these files
+!.gitignore
+!README.md
+!package.json
