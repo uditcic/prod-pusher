@@ -1,5 +1,20 @@
 # Prod-Pusher Changelog
 
+## v3.5.1 (April 2026)
+
+### Bug Fixes
+
+#### 🐛 Path Traversal False Positives on Drive Roots
+- Fixed a bug where configuring a base directory as a bare drive root (e.g., `Y:\`) would cause `safeJoin` and `resolveIncludeAbs` to incorrectly flag valid paths as missing.
+- Ensured trailing path separators are handled consistently when building the verification prefix.
+
+---
+
+**Release Date:** April 29, 2026
+**Author:** Udit Kumar
+
+---
+
 ## v3.5 (April 2026)
 
 ### Security Fixes
