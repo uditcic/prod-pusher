@@ -1,5 +1,21 @@
 # Prod-Pusher Changelog
 
+## v3.5.2 (April 2026)
+
+### Bug Fixes
+
+#### 🐛 URL Parsing for Hostnames without Protocol
+- Fixed an issue where pasting URLs missing a protocol (e.g., `stage.cic.gc.ca/path...`) caused the URL parser to fail, resulting in the hostname being incorrectly kept as part of the local file path.
+- This resolves the "Some files were not found locally" error that occurred because the application was looking for a non-existent directory named after the domain.
+- `relFromInput` now properly strips protocols and known domains (`*.gc.ca`, `*.canada.ca`) and uses a dummy base URL to cleanly extract the file path.
+
+---
+
+**Release Date:** April 30, 2026
+**Author:** Udit Kumar
+
+---
+
 ## v3.5.1 (April 2026)
 
 ### Bug Fixes
