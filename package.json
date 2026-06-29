@@ -1,6 +1,6 @@
 {
   "name": "prod-pusher",
-  "version": "3.4",
+  "version": "4.2",
   "description": "Release metadata for the Prod-Pusher desktop tool",
   "author": "Udit Kumar",
   "license": "MIT",
